@@ -16,9 +16,22 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d:ro
-      # Light perf tuning (shared_buffers 256MB, effective_cache_size 1GB,
-      # work_mem 16MB, maintenance_work_mem 64MB) — read-only conf.d file.
-      - ./postgres/perf.conf:/etc/postgresql/conf.d/99-perf.conf:ro
+    # Light perf tuning (shared_buffers 256MB, effective_cache_size 1GB,
+    # work_mem 16MB, maintenance_work_mem 64MB). The official postgres image
+    # keeps its main config at $PGDATA/postgresql.conf and has NO conf.d
+    # include_dir, so the tuning is passed as -c flags on the server command
+    # (the docker entrypoint forwards args to postgres). max_connections
+    # stays at the default.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=64MB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
