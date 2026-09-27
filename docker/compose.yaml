@@ -4,6 +4,15 @@ services:
   postgres:
     image: docker.io/library/postgres:16
     restart: unless-stopped
+    # Hardening: drop all capabilities + no setuid. (No `user:` override — the
+    # postgres image drops to the postgres user itself via a non-setuid gosu
+    # invoked by root; forcing a user breaks data-dir init.)
+    # `cap_drop: [ALL]` also strips the caps that entrypoint's root-init needs
+    # (chown the data dir + gosu's setuid/setgid), so we re-add the minimal set
+    # that lets it do exactly that and nothing more.
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID]
+    security_opt: [no-new-privileges:true]
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -43,6 +52,8 @@ services:
     # (podman-compose cannot build with a foreign context — see README)
     image: klms-dot-idm
     restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,6 +80,8 @@ services:
       context: ..
       dockerfile: docker/klms/Dockerfile
     restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
     depends_on:
       postgres:
         condition: service_healthy
@@ -116,6 +129,8 @@ services:
     # its --time-limit=3600; `restart: unless-stopped` brings a fresh one up.
     image: klms-dot_klms
     restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
     depends_on:
       postgres:
         condition: service_healthy
