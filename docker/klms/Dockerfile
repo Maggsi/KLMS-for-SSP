@@ -37,6 +37,8 @@ EXPOSE 8094
 
 COPY docker/klms-entrypoint.sh /klms-entrypoint.sh
 COPY docker/klms-router.php /app/docker/klms-router.php
+# Cheap in-image DB-reachability probe for the healthchecks (see docker/hcdb.php).
+COPY docker/hcdb.php /hcdb.php
 RUN chmod +x /klms-entrypoint.sh
 
 # One container = one process. Compose runs this image twice with different

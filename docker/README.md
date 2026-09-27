@@ -155,6 +155,31 @@ fresh one up (the same "one worker" invariant as the VM's supervisor setup).
 Each container has its own healthcheck: the web tier is probed over HTTP, the
 worker over its process list — a dead tier can no longer mask as healthy.
 
+## Health checks
+
+Every service has a `start_period` so a **slow first boot does not trip the
+retry counter and mark the container `unhealthy` while it is still starting**:
+during `start_period`, probe failures do **not** count toward `retries` — the
+container stays `starting` (not `unhealthy`) until the period elapses.
+
+- `postgres` — `start_period: 30s` (covers `initdb/setup.sh` role/DB creation).
+- `idm` / `klms` / `klms-worker` — `start_period: 60s` (covers
+  `doctrine:schema:create` + Symfony console boot on first boot).
+
+The `klms` and `idm` probes are a stronger **"app + DB up"** signal: the HTTP
+probe proves the web tier answers **and** `php /hcdb.php` proves the database is
+reachable. The `klms-worker` probe greps the raw `/proc/[0-9]*/cmdline` (pgrep
+is not in the `php:8.4-cli` image) for `messenger:consume` **and** runs the same
+`/hcdb.php` DB check — so a **ZOMBIE worker** (process alive but DB
+unreachable) is caught.
+
+`/hcdb.php` is a small PHP probe **baked into both images** (one `COPY` per
+Dockerfile; it reads `DATABASE_URL` and runs `SELECT 1` via `pdo_pgsql` — no
+new deps). It is a *file* on purpose: `podman-compose` interpolates bare `$VAR`
+in the compose healthcheck string (a bare `$p`/`$ok` would be replaced with the
+env value or empty, silently breaking the probe) — keeping the `$` in the file
+sidesteps that.
+
 ## DB users (two-tier)
 
 `initdb/setup.sh` (runs on first start, idempotent) creates, per app:

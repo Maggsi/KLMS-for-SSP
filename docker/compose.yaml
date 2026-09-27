@@ -21,6 +21,10 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+      # First boot runs initdb/setup.sh (role + DB creation). Probe failures
+      # during this window do NOT count toward `retries`, so the container
+      # stays "starting" (not "unhealthy") until the period elapses.
+      start_period: 30s
 
   idm:
     # Built with: podman build -f docker/idm/Dockerfile -t klms-dot-idm /home/max/.hermes/cache/scratch/klms-dot/IDM-for-DoT
@@ -41,10 +45,19 @@ services:
     # (http://idm:8095, see .env.example KLMS_IDM_URL). Exposing it on the host
     # was only for local testing.
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8095/ || exit 1"]
+      # "app + DB up": the HTTP probe proves the web tier answers,
+      # `php /hcdb.php` proves the database is reachable (baked probe,
+      # image ships pdo_pgsql). /hcdb.php is a FILE on purpose: podman-compose
+      # interpolates bare $VAR in the healthcheck string (a bare $p/$ok would
+      # be replaced with the env value or empty, breaking the probe).
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8095/ && php /hcdb.php || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
+      # First boot runs doctrine:schema:create + Symfony console boot (tens of
+      # seconds). Probe failures during this window do NOT count toward
+      # `retries`, so the container stays "starting" (not "unhealthy").
+      start_period: 60s
     volumes:
       - idm-var:/app/var
 
@@ -80,10 +93,17 @@ services:
     # (the klms-worker service runs the messenger tier from the same image).
     command: ["web"]
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8094/ || exit 1"]
+      # "app + DB up": the HTTP probe proves the web tier answers,
+      # `php /hcdb.php` proves the database is reachable (baked probe,
+      # image ships pdo_pgsql).
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8094/ && php /hcdb.php || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
+      # First boot runs doctrine:schema:create + Symfony console boot (tens of
+      # seconds). Probe failures during this window do NOT count toward
+      # `retries`, so the container stays "starting" (not "unhealthy").
+      start_period: 60s
     volumes:
       - klms-var:/app/var
       - klms-public:/app/public/images
@@ -112,11 +132,23 @@ services:
     # No host port: internal-only, like idm.
     command: ["worker"]
     healthcheck:
-      # pgrep is NOT in the php:8.4-cli image, so scan /proc directly.
-      test: ["CMD-SHELL", "for p in /proc/[0-9]*/cmdline; do tr '\\0' ' ' < \"$p\" | grep -q 'messenger:consume' && exit 0; done; exit 1"]
+      # Two checks, both must pass:
+      # 1) the messenger:consume process is alive. pgrep is NOT in the
+      #    php:8.4-cli image, so grep the raw /proc cmdlines. The [e]
+      #    bracket matches the worker's "messenger:consume" but NOT this
+      #    healthcheck's own shell (which carries the literal "messenger:consum[e]").
+      # 2) the database is reachable (baked probe, image ships pdo_pgsql) —
+      #    catches a ZOMBIE worker (process alive but DB unreachable).
+      # No bare $VAR in this string: podman-compose interpolates them (a bare
+      # $p/$ok would be replaced with the env value or empty, breaking the probe).
+      test: ["CMD-SHELL", "grep -q 'messenger:consum[e]' /proc/[0-9]*/cmdline && php /hcdb.php || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
+      # First boot runs doctrine:schema:create + Symfony console boot (tens of
+      # seconds). Probe failures during this window do NOT count toward
+      # `retries`, so the container stays "starting" (not "unhealthy").
+      start_period: 60s
     volumes:
       - klms-var:/app/var
 
