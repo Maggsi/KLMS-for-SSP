@@ -145,6 +145,28 @@ The `idm` and `klms-worker` ports are **not** exposed on the host — KLMS reach
 the IDM over the internal docker network (`http://idm:8095`). Only `klms` (8094)
 is published.
 
+## Security hardening
+
+- **Non-root PHP processes:** both PHP images (`klms` + `idm`) create an
+  unprivileged user (`appuser`, uid 1000) and run as it (`USER appuser` before
+  the entrypoint). The writable dirs are chowned to that user in the image
+  (`/app/var`, plus `/app/public/{images,media,uploads}` for klms); the runtime
+  named volumes inherit this ownership on first mount (empty volume → image
+  content copied in), so the first-boot schema bootstrap
+  (`doctrine:schema:create`, which writes `var/cache`) and static-file serving
+  work as the non-root user.
+- **Dropped capabilities:** every service in `compose.yaml` sets
+  `cap_drop: [ALL]` + `security_opt: [no-new-privileges:true]`.
+- **Postgres keeps root init:** the `postgres` service does **not** set a `user:`
+  override — the postgres image drops to the `postgres` user itself via a
+  non-setuid gosu invoked by root; forcing a user would break data-dir init.
+  It still gets `cap_drop: [ALL]` + `security_opt`, **plus a minimal `cap_add`**
+  (`CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID`) because `cap_drop: [ALL]`
+  otherwise strips the caps that entrypoint's root-init needs (chown the data
+  dir + gosu's setuid/setgid).
+- Deliberately **not** done (over-engineering for this stack): read-only rootfs
+  and a custom seccomp profile.
+
 The `klms` image is run as **two containers** (one process per container — no
 supervisor inside the container):
 1. `klms` — `php -S 0.0.0.0:8094 -t /app/public /app/docker/klms-router.php` (web tier)

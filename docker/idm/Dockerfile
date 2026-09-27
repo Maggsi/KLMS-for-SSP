@@ -24,6 +24,14 @@ RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts \
     && composer dump-autoload --no-dev \
     && mkdir -p var/cache var/log
 
+# --- non-root runtime user ---
+# The PHP process runs as an unprivileged user (uid 1000), not root. The writable
+# dir is chowned to it; the runtime named volume inherits this ownership when it
+# is first mounted (empty volume -> image content copied in). The first-boot
+# schema bootstrap (doctrine:schema:create) writes var/cache as this user.
+RUN useradd -m -u 1000 appuser \
+    && chown -R appuser:appuser var
+
 EXPOSE 8095
 
 # The PHP built-in server is the web tier (php:8.4-cli ships no php-fpm).
@@ -33,4 +41,5 @@ COPY docker/idm-entrypoint.sh /idm-entrypoint.sh
 COPY docker/idm-router.php /idm-router.php
 RUN chmod +x /idm-entrypoint.sh
 
+USER appuser
 ENTRYPOINT ["/idm-entrypoint.sh"]

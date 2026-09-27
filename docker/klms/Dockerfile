@@ -33,6 +33,15 @@ RUN mkdir -p public/images/news public/images/user public/images/site \
     public/images/sponsor public/images/gallery public/images/beamernews \
     public/media public/uploads/tourney-rules
 
+# --- non-root runtime user ---
+# The PHP processes (web + worker) run as an unprivileged user (uid 1000), not
+# root. Writable dirs are chowned to it; the runtime named volumes inherit this
+# ownership when they are first mounted (empty volume -> image content copied in).
+# The first-boot schema bootstrap (doctrine:schema:create) writes var/cache as
+# this user, which is why /app/var must be owned by it.
+RUN useradd -m -u 1000 appuser \
+    && chown -R appuser:appuser var public/images public/media public/uploads
+
 EXPOSE 8094
 
 COPY docker/klms-entrypoint.sh /klms-entrypoint.sh
@@ -43,4 +52,5 @@ RUN chmod +x /klms-entrypoint.sh
 # arguments (see compose.yaml): `web` (php -S) and `worker` (messenger:consume).
 # No CMD default: a bare `docker run` with no arg exits with a usage error,
 # which is the desired behaviour.
+USER appuser
 ENTRYPOINT ["/klms-entrypoint.sh"]
