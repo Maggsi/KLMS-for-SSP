@@ -4,6 +4,7 @@ services:
   postgres:
     image: docker.io/library/postgres:16
     restart: unless-stopped
+    env_file: .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -27,6 +28,7 @@ services:
     # (podman-compose cannot build with a foreign context — see README)
     image: klms-dot-idm
     restart: unless-stopped
+    env_file: .env
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,6 +39,13 @@ services:
       # Referenced by the config via %env(...)% — must be present (empty is fine).
       SENTRY_DSN: ${IDM_SENTRY_DSN:-}
       MAILER_DSN: ${IDM_MAILER_DSN:-null://null}
+      # First-run init (idm-entrypoint.sh): creates the API key (value MUST match
+      # KLMS_IDM_APIKEY in the KLMS .env) + the default admin user.
+      KLMS_IDM_APIKEY: ${KLMS_IDM_APIKEY}
+      KLMS_IDM_APIKEY_NAME: ${KLMS_IDM_APIKEY_NAME:-klms}
+      KLMS_ADMIN_EMAIL: ${KLMS_ADMIN_EMAIL:-}
+      KLMS_ADMIN_PASSWORD: ${KLMS_ADMIN_PASSWORD:-}
+      KLMS_ADMIN_NICKNAME: ${KLMS_ADMIN_NICKNAME:-admin}
     # No host port: KLMS reaches the IDM over the internal docker network
     # (http://idm:8095, see .env.example KLMS_IDM_URL). Exposing it on the host
     # was only for local testing.
@@ -53,11 +62,15 @@ services:
       context: ..
       dockerfile: docker/klms/Dockerfile
     restart: unless-stopped
+    env_file: .env
     depends_on:
       postgres:
         condition: service_healthy
+      # service_healthy (not service_started): the idm entrypoint runs the
+      # first-run init (IDM API key + admin user) before its web server starts,
+      # so this gate guarantees the init is done before KLMS comes up.
       idm:
-        condition: service_started
+        condition: service_healthy
     environment:
       APP_ENV: ${KLMS_APP_ENV}
       APP_SECRET: ${KLMS_APP_SECRET}
@@ -96,6 +109,7 @@ services:
     # its --time-limit=3600; `restart: unless-stopped` brings a fresh one up.
     image: klms-dot_klms
     restart: unless-stopped
+    env_file: .env
     depends_on:
       postgres:
         condition: service_healthy
@@ -117,6 +131,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
+    # Shared with the klms web container: the schema-bootstrap flock() lock
+    # (klms-schema.lock) + marker (klms-schema.done) live here so only ONE of
+    # the two containers runs doctrine:schema:create on a fresh volume.
     volumes:
       - klms-var:/app/var
 
