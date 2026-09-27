@@ -16,6 +16,9 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d:ro
+      # Light perf tuning (shared_buffers 256MB, effective_cache_size 1GB,
+      # work_mem 16MB, maintenance_work_mem 64MB) — read-only conf.d file.
+      - ./postgres/perf.conf:/etc/postgresql/conf.d/99-perf.conf:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
@@ -74,6 +77,10 @@ services:
       MESSENGER_TRANSPORT_DSN: ${KLMS_MESSENGER_TRANSPORT_DSN}
       SENTRY_DSN: ${KLMS_SENTRY_DSN}
       CARTO_BASEMAP_API_KEY: ${KLMS_CARTO_BASEMAP_API_KEY}
+      # php -S is single-threaded by default and stalls on a blocked request;
+      # a few workers remove head-of-line blocking (one process per container
+      # is kept — the built-in server's worker threads are not extra processes).
+      PHP_CLI_SERVER_WORKERS: "4"
     ports:
       - "8094:8094"
     # One container = one process: the web tier is its own container
