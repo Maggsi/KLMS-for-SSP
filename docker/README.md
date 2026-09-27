@@ -5,14 +5,20 @@ IDM-for-DoT fork (branch `develop`) as a self-contained test environment.
 
 ## Quick start
 
-**Option 1 — first-time helper (interactive):**
+**Option 1 — first-time helper (non-interactive, default):**
 ```bash
 cd docker/
 ./setup.sh
 ```
-If `docker/.env` does not exist, `setup.sh` walks you through the values (with a
-brief explanation of each), writes `docker/.env`, then starts the stack. If `.env`
-already exists, it just starts the stack (no questions).
+If `docker/.env` does not exist, `setup.sh` generates a WORKING one with **no
+prompts**: random secrets (`openssl rand -hex 32`) for `APP_SECRET`,
+`IDM_APP_SECRET`, the IDM API key and the first admin password, an
+auto-detected `SITE_BASE_HOST` (host LAN IP + `:8094`), and the other sane
+defaults from `.env.example`. The generated secrets are **persisted** to `.env`,
+so re-runs do NOT rotate them (an existing `.env` is reused as-is). `.env` is
+gitignored. The first admin's password is printed at the end of the run.
+
+The old interactive wizard (asks for every value) is kept behind `./setup.sh --ask`.
 
 **Option 2 — you already have a `.env`:**
 ```bash
@@ -29,13 +35,22 @@ podman-compose up -d
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 ```
 
-> **Schema bootstrap (automatic):** the databases are created by `initdb/setup.sh`
+> **Schema bootstrap (automatic, race-free):** the databases are created by `initdb/setup.sh`
 > (runs on first start). The **tables** are created automatically by the entrypoints
-> (`klms-entrypoint.sh` / `idm-entrypoint.sh`) on first boot: each checks whether the
-> `public` schema has any tables, and if not, runs `doctrine:schema:create` before
-> starting its process. On every later boot the check finds tables and skips it
-> (a no-op — it never touches the `messenger_messages` queue on a running stack).
-> So a fresh `up -d` just works; no manual `schema:create` needed.
+> (`klms-entrypoint.sh` / `idm-entrypoint.sh`) on first boot: each checks for a
+> **marker file** (`klms-schema.done`, on the shared `klms-var`/`idm-var` volume) and,
+> if it is missing, runs `doctrine:schema:create` before starting its process, then
+> writes the marker. (A "0 tables" check is NOT used: the messenger transport
+> auto-creates `messenger_messages` during the boot, so a fresh DB already has 1+
+> tables and a table-count check would skip the bootstrap.) The KLMS image runs as
+> **two** containers (web + worker), so on a fresh volume both would see no marker —
+> the bootstrap is therefore wrapped in `flock()` on a lock file in the **shared**
+> `klms-var` volume, so only ONE of the two containers ever runs
+> `doctrine:schema:create` (no duplicate-sequence race). On every later boot the
+> marker exists and the step is skipped (a no-op — it never touches the
+> `messenger_messages` queue on a running stack). The marker lives in the named
+> volume, so it is wiped together with `pgdata` on `down -v` and a fresh volume
+> re-bootstraps. So a fresh `up -d` just works; no manual `schema:create` needed.
 
 > **Why the IDM image is built separately:** the IDM fork's code is NOT in the KLMS
 > worktree. `podman-compose build` resolves a service's `dockerfile` path *relative to
@@ -74,40 +89,46 @@ cd docker/
 ./setup.sh
 ```
 
-`setup.sh` walks you through `docker/.env` (each value with a one-line explanation +
-a default), writes it (mode 600), and runs `podman-compose up -d`. The values:
-postgres superuser; the **two-tier** DB users (app user owns the DB, migration user
-has all rights); KLMS `APP_SECRET` (signs sessions/CSRF), the **IDM API key + auth**
-(shared secret between the two apps), `MAILER_DSN` (`null://null` = no mail),
-`SITE_BASE_HOST` (what you browse to, e.g. `192.168.0.170:8094`); IDM `APP_SECRET`.
-It derives the two `DATABASE_URL`s from the user/password/db-name you gave.
-(Prefer manual? `cp .env.example .env`, edit, `podman-compose up -d`.)
+`setup.sh` generates `docker/.env` **with no prompts** (random secrets via
+`openssl rand -hex 32` for `APP_SECRET`/`IDM_APP_SECRET`/the IDM API key/the
+first admin password, an auto-detected `SITE_BASE_HOST`, the other sane defaults
+from `.env.example`), writes it (mode 600), and runs `podman-compose up -d`.
+The generated secrets are persisted, so re-runs do NOT rotate them. The first
+admin's password is printed at the end — keep it. (Prefer to be asked for each
+value? `./setup.sh --ask`. Prefer manual? `cp .env.example .env`, edit,
+`podman-compose up -d`.)
 
 ### 4. First boot (automatic)
 
-On first boot postgres runs `initdb/setup.sh` (DBs + two-tier roles) and **both
-entrypoints auto-create the schema** (0 tables → `doctrine:schema:create` → start).
-A fresh `up -d` just works. Give it a minute, then:
+On first boot postgres runs `initdb/setup.sh` (DBs + two-tier roles), the
+entrypoints **auto-create the schema** (no marker file → `doctrine:schema:create` →
+start; `flock`-guarded so only one of the two KLMS containers runs it), and the
+**idm entrypoint runs the first-run init** (IDM API key + default admin user —
+both guarded by skip-if-exists checks, so re-runs are a no-op). A fresh `up -d`
+just works. Give it a minute, then:
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" http://<SITE_BASE_HOST>/   # → 200
 ```
 
-### 5. Create your first admin (the critical step)
+### 5. Your first admin (already created — just log in)
 
-A fresh stack has **no users** — the first one is created in the IDM (the identity
-backend), via the IDM console. Two things:
+The first-run init (step 4) already created the IDM API key (value =
+`KLMS_IDM_APIKEY` from `docker/.env`) and the default admin user
+(`KLMS_ADMIN_EMAIL` / `KLMS_ADMIN_PASSWORD` from `docker/.env`, `--confirmed`).
+A fresh stack has **no users** and no self-signup, so `app:user:create` is the
+only way in — the entrypoint just runs it for you, guarded by
+`app:apikeys:list` / `app:user:list` so it is idempotent.
 
-```bash
-# (a) the API key KLMS uses to reach IDM — value MUST MATCH docker/.env KLMS_IDM_APIKEY
-podman exec klms-dot_idm_1 php bin/console app:apikeys:create klms <your-api-key>
-
-# (b) your admin user (--confirmed so it's not stuck in the email-verification flow)
-podman exec klms-dot_idm_1 php bin/console app:user:create you@example.com <password> <nickname> --confirmed
-```
-
-The API key is the linchpin: the same value lives in `docker/.env`
-(`KLMS_IDM_APIKEY`) and must exist in IDM's `api_key` table, or login fails.
+> **Manual alternative (if you skip the first-run init vars):**
+> ```bash
+> # (a) the API key KLMS uses to reach IDM — value MUST MATCH docker/.env KLMS_IDM_APIKEY
+> podman exec klms-dot_idm_1 php bin/console app:apikeys:create klms <your-api-key>
+> # (b) your admin user (--confirmed so it's not stuck in the email-verification flow)
+> podman exec klms-dot_idm_1 php bin/console app:user:create you@example.com <password> <nickname> --confirmed
+> ```
+> The API key is the linchpin: the same value lives in `docker/.env`
+> (`KLMS_IDM_APIKEY`) and must exist in IDM's `api_key` table, or login fails.
 
 ### 6. Log in to the admin UI
 
@@ -123,9 +144,12 @@ normal CMS administration (pages, users, news).
 
 ### The two things that bite a first-timer
 1. **The API key must match in both places** (`docker/.env` and IDM) — the #1
-   "login fails" cause.
+   "login fails" cause. The first-run init handles this for you (it creates the
+   IDM key with the exact `KLMS_IDM_APIKEY` value from `.env`); if you create it
+   manually, keep the two values in sync.
 2. **The first user is created via the IDM console** — a fresh instance has no
-   self-signup, so `app:user:create` is the only way in.
+   self-signup, so `app:user:create` is the only way in. The first-run init runs
+   it for you (guarded by skip-if-exists); if you skip it, run it manually.
 
 > **Production note:** this is the bigboy test stack (port 8094, `null://null`
 > mail). For a real deploy, point `SITE_BASE_HOST`/`MAILER_DSN` at production values
@@ -244,8 +268,12 @@ stack to the VM:
    - `KLMS_MAILER_DSN` → copy from the VM's existing `/var/www/klms-dot/.env.local`
    - `KLMS_IDM_APIKEY` / `KLMS_IDM_AUTH` → from the VM's `.env.local`
 3. Build both images (see Quick start), `podman-compose up -d`.
-4. The schema is created automatically on first boot (see "Schema bootstrap (automatic)"); no manual `schema:create` needed.
-5. Point Traefik at the container port (or a reverse proxy on the VM).
+4. The schema is created automatically on first boot (see "Schema bootstrap
+   (automatic, race-free)"); no manual `schema:create` needed.
+5. If you set `KLMS_ADMIN_EMAIL`/`KLMS_ADMIN_PASSWORD` in the VM's `.env`, the
+   first-run init creates that admin + the API key automatically (skip-if-exists).
+   Otherwise create them manually (see step 5 of the walkthrough above).
+6. Point Traefik at the container port (or a reverse proxy on the VM).
 
 > **Postgres init scripts only run on first start** (empty `pgdata` volume). To re-init
 > with new passwords: `podman-compose down -v` then `up -d`.

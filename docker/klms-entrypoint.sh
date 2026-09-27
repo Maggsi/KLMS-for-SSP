@@ -19,22 +19,35 @@
 set -e
 
 # --- First-time schema bootstrap (no-op on subsequent boots) ---
-# On a fresh DB (0 tables in public), create the schema before starting the
-# main process. This runs before the worker starts, so there's no race with
-# the messenger transport auto-creating messenger_messages. On subsequent boots
-# the DB has tables, so the pg check returns non-zero and we skip schema:create
-# entirely (no console boot, no wasted time).
-TABLES=$(php -r '
-  $u = parse_url(getenv("DATABASE_URL") ?: "");
-  if (empty($u["host"])) { echo "0"; exit; }
-  $c = @pg_connect("host={$u["host"]} port=" . ($u["port"] ?? 5432) . " dbname=" . ltrim($u["path"], "/") . " user={$u["user"]} password=" . ($u["pass"] ?? ""));
-  if (!$c) { echo "0"; exit; }
-  $r = pg_query($c, "SELECT count(*) FROM information_schema.tables WHERE table_schema='"'"'public'"'"'");
-  echo $r ? pg_fetch_result($r, 0, 0) : "0";
-' 2>/dev/null)
-if [ "${TABLES:-0}" = "0" ]; then
-  echo "First boot: creating database schema..."
-  php bin/console doctrine:schema:create 2>&1 | grep -vE 'deprecation|Deprecated' || true
+# On a fresh volume (no marker file), create the schema before starting the
+# main process. On subsequent boots the marker file exists and we skip
+# schema:create entirely (no console boot, no wasted time).
+#
+# GATE = the marker file (/app/var/klms-schema.done, on the SHARED klms-var
+# volume), NOT a table count. A "0 tables" check is NOT reliable here: the
+# messenger transport auto-creates messenger_messages during the console/php -S
+# boot, so a fresh DB already has 1+ tables and a pure table-count check would
+# skip the bootstrap — leaving the real schema (news, ...) missing. The marker
+# is written once, after a successful schema:create, and persists in the named
+# volume, so it is the reliable "done" signal (it is wiped together with the
+# pgdata volume on `down -v`, so a fresh volume has neither).
+#
+# RACE FIX (web vs worker): on a fresh volume BOTH containers see no marker and
+# would both run doctrine:schema:create at the same time — one fails with a
+# duplicate-sequence error (previously swallowed by `|| true`). flock()
+# serializes the bootstrap: the lock file lives in /app/var, the SHARED named
+# volume both containers mount (a lock in /tmp would NOT work — /tmp is
+# per-container). The first container creates the schema and writes the marker;
+# the second waits for the lock, sees the marker, and skips. The marker + flock
+# makes it idempotent AND race-free.
+if [ ! -f /app/var/klms-schema.done ]; then
+  echo "First boot: creating database schema (flock: only one of web/worker runs it)..."
+  flock /app/var/klms-schema.lock -c '
+    if [ ! -f /app/var/klms-schema.done ]; then
+      php bin/console doctrine:schema:create 2>&1 | grep -vE "deprecation|Deprecated" || true
+      touch /app/var/klms-schema.done
+    fi
+  '
   echo "Schema bootstrap done."
 fi
 
