@@ -3,7 +3,7 @@
 #
 # The compose stack runs this image as TWO containers (see compose.yaml):
 #   - klms        (arg: web)    -> php -S 0.0.0.0:8094 -t /app/public /app/docker/klms-router.php
-#   - klms-worker (arg: worker) -> php bin/console messenger:consume async --time-limit=3600
+#   - klms-worker (arg: worker) -> php -d opcache.enable_cli=1 bin/console messenger:consume async --time-limit=3600
 #
 # Why two containers and not one supervised process:
 #   - the Docker convention is one process per container; the container runtime
@@ -43,7 +43,9 @@ case "${1:-}" in
     exec php -S 0.0.0.0:8094 -t /app/public /app/docker/klms-router.php
     ;;
   worker)
-    exec php bin/console messenger:consume async --time-limit=3600
+    # opcache is OFF by default under the cli SAPI — without this the worker
+    # re-compiles the whole Symfony+vendor codebase for EVERY message.
+    exec php -d opcache.enable_cli=1 bin/console messenger:consume async --time-limit=3600
     ;;
   *)
     echo "usage: klms-entrypoint.sh {web|worker}" >&2

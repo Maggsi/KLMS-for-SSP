@@ -155,6 +155,32 @@ fresh one up (the same "one worker" invariant as the VM's supervisor setup).
 Each container has its own healthcheck: the web tier is probed over HTTP, the
 worker over its process list — a dead tier can no longer mask as healthy.
 
+## Performance tuning (cheap wins)
+
+Applied in this worktree (branch `perf-cheap-wins`):
+
+- **opcache for the messenger worker** — `klms-entrypoint.sh` runs the worker as
+  `php -d opcache.enable_cli=1 bin/console …`: opcache is OFF by default under the
+  cli SAPI, so without this the worker re-compiled the whole Symfony+vendor
+  codebase for *every* message.
+- **`opcache.memory_consumption=256`** (web + worker) via `docker/klms/php.ini`
+  (copied to `/usr/local/etc/php/conf.d/99-perf.ini` by the klms Dockerfile —
+  the klms image serves both the web tier and the worker) so the codebase is
+  not evicted from the cache.
+- **`PHP_CLI_SERVER_WORKERS=4`** on the `klms` web service — `php -S` is
+  single-threaded by default and stalls on a blocked request; a few workers
+  remove head-of-line blocking while keeping the one-process-per-container
+  design (the built-in server's workers are threads, not extra processes).
+- **Light postgres tuning** — passed as `-c` flags on the postgres command in
+  `compose.yaml` (the official postgres image keeps its main config at
+  `$PGDATA/postgresql.conf` and has no `conf.d` include_dir, so a mounted
+  conf.d file would be a silent no-op): `shared_buffers=256MB`,
+  `effective_cache_size=1GB`, `work_mem=16MB`, `maintenance_work_mem=64MB`;
+  `max_connections` left at default.
+
+The `php-fpm`/nginx switch was deliberately **not** done — over-engineering for
+LAN traffic.
+
 ## DB users (two-tier)
 
 `initdb/setup.sh` (runs on first start, idempotent) creates, per app:
