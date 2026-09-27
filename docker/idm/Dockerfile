@@ -39,6 +39,8 @@ EXPOSE 8095
 # and forwards everything else to the front controller — see docker/idm-router.php.
 COPY docker/idm-entrypoint.sh /idm-entrypoint.sh
 COPY docker/idm-router.php /idm-router.php
+# Cheap in-image DB-reachability probe for the healthchecks (see docker/hcdb.php).
+COPY docker/hcdb.php /hcdb.php
 RUN chmod +x /idm-entrypoint.sh
 
 USER appuser
