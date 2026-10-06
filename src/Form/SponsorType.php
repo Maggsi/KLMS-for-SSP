@@ -26,7 +26,7 @@ class SponsorType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name')
+            ->add('name', null, ['label' => 'Name', 'required' => false])
             ->add('isVisible', null, ['label' => 'Sponsor anzeigen'])
             ->add('sortOrder', IntegerType::class, ['label' => 'Sortierung', 'required' => false])
             ->add('url', null, ['label' => 'URL'])

@@ -40,7 +40,7 @@
                                         {% if s.url is not empty %}</a>{% endif %}
                                     </div>
                                     <div class="col-lg-7 col-12">
-                                        <h4 class="mt-2 mb-2 sponsor-name">{{ s.name }}</h4>
+                                        {% if s.name is not empty %}<h4 class="mt-2 mb-2 sponsor-name">{{ s.name }}</h4>{% endif %}
                                         {{ s.text | raw }}
                                     </div>
                                 </li>
