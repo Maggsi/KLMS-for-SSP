@@ -50,6 +50,9 @@ class Sponsor implements HistoryAwareEntity
     #[ORM\Column]
     private ?bool $isVisible = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private bool $showName = true;
+
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $sortOrder = null;
 
@@ -147,6 +150,18 @@ class Sponsor implements HistoryAwareEntity
     public function setIsVisible(bool $isVisible): static
     {
         $this->isVisible = $isVisible;
+
+        return $this;
+    }
+
+    public function getShowName(): bool
+    {
+        return $this->showName;
+    }
+
+    public function setShowName(bool $showName): static
+    {
+        $this->showName = $showName;
 
         return $this;
     }

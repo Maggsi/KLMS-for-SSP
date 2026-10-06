@@ -28,6 +28,7 @@ class SponsorType extends AbstractType
         $builder
             ->add('name')
             ->add('isVisible', null, ['label' => 'Sponsor anzeigen'])
+            ->add('showName', null, ['label' => 'Sponsorenname unter dem Logo anzeigen'])
             ->add('sortOrder', IntegerType::class, ['label' => 'Sortierung', 'required' => false])
             ->add('url', null, ['label' => 'URL'])
             ->add('text', HtmlTextareaType::class, [
