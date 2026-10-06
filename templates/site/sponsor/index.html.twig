@@ -36,11 +36,11 @@
                                 <li class="row mb-4 sponsor">
                                     <div class="col-lg-5 col-12 align-self-center text-center">
                                         {% if s.url is not empty %}<a href="{{ s.url }}" target="_blank">{% endif %}
-                                        <img style="width: 300px; max-height: 300px;" src="{{ vich_uploader_asset(s, 'logoFile') | imagine_filter('sponsor_logo') }}">
+                                        {% if vich_uploader_asset(s, 'logoFile') is not null %}<img style="width: 300px; max-height: 300px;" src="{{ vich_uploader_asset(s, 'logoFile') | imagine_filter('sponsor_logo') }}">{% endif %}
                                         {% if s.url is not empty %}</a>{% endif %}
                                     </div>
                                     <div class="col-lg-7 col-12">
-                                        <h4 class="mt-2 mb-2 sponsor-name">{{ s.name }}</h4>
+                                        {% if s.name is not empty %}<h4 class="mt-2 mb-2 sponsor-name">{{ s.name }}</h4>{% endif %}
                                         {{ s.text | raw }}
                                     </div>
                                 </li>
