@@ -96,7 +96,9 @@ footer,
   left: 0;
   right: 0;
   height: 15vmin;
-  color: #2b2b2b;
+  // Match the body/news background so the chevron transition blends into the
+  // content below (issue #22).
+  color: vars.$body-bg;
 }
 
 .l-section-shape.pos_bottom {
