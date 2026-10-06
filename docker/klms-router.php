@@ -27,4 +27,12 @@ if ($uri !== '/' && $uri !== '' && $uri[0] === '/') {
     }
 }
 
+// php -S sets SCRIPT_FILENAME to THIS router script. Symfony's
+// autoload_runtime.php does `require SCRIPT_FILENAME` and expects the app
+// callable — on a warm worker (after the first require_once no longer returns
+// true) it would re-require the router (which returns an int) and die with a
+// TypeError. Point it at the front controller so the runtime resolves the app.
+$_SERVER['SCRIPT_FILENAME'] = $base . '/index.php';
+$_SERVER['PHP_SELF'] = '/index.php';
+
 require $base . '/index.php';

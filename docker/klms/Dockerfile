@@ -6,9 +6,18 @@ FROM php:8.4-cli@sha256:c4723acd1cacb5df50df3b4866730f4bcccde1b5c0948ab49ae615fb
 
 # --- system deps for PHP extensions ---
 # (no xdebug: this is a prod image)
+#
+# libgd-dev + --with-external-gd: the php:8.4-cli image ships a BUNDLED
+# libgd 2.1.0 compiled WITHOUT webp/jpg (gd_info shows empty), so every
+# LiipImagine media-cache URL 500s ("Creating an image in webp format is not
+# supported", "Unable to open image ...jpg"). Linking the gd extension
+# against the system libgd (2.3.3, built with webp/jpg/freetype/avif — same
+# feature set as the VM's php8.4-fpm gd) makes the docker test stack match
+# the live site.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpq-dev libpng-dev libxml2-dev libicu-dev libcurl4-openssl-dev \
+        libpq-dev libpng-dev libgd-dev libxml2-dev libicu-dev libcurl4-openssl-dev \
         libzip-dev libonig-dev unzip curl \
+    && docker-php-ext-configure gd --with-external-gd \
     && docker-php-ext-install pdo_pgsql pgsql gd intl xml mbstring curl zip bcmath \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,10 +46,17 @@ RUN mkdir -p public/images/news public/images/user public/images/site \
 # The PHP processes (web + worker) run as an unprivileged user (uid 1000), not
 # root. Writable dirs are chowned to it; the runtime named volumes inherit this
 # ownership when they are first mounted (empty volume -> image content copied in).
-# The first-boot schema bootstrap (doctrine:schema:create) writes var/cache as
-# this user, which is why /app/var must be owned by it.
+# The first-boot schema bootstrap (doctrine:schema:create) writes var/cache as this
+# user, which is why /app/var must be owned by it.
+#
+# `public` (the whole tree, not just the subdirs) must be appuser-owned: the
+# LiipImagine media cache is created at RUNTIME under /app/public/cache, and the
+# app cannot mkdir a child of a root-owned /app/public. (Chowning only the
+# images/media/uploads subdirs leaves /app/public itself root-owned, so the
+# cache dir creation fails with "Permission denied" and every media-cache URL
+# 500s.)
 RUN useradd -m -u 1000 appuser \
-    && chown -R appuser:appuser var public/images public/media public/uploads
+    && chown -R appuser:appuser var public
 
 EXPOSE 8094
 

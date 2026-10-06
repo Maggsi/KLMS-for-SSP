@@ -134,7 +134,7 @@ services:
       # is kept — the built-in server's worker threads are not extra processes).
       PHP_CLI_SERVER_WORKERS: "4"
     ports:
-      - "8094:8094"
+      - "8104:8094"
     # One container = one process: the web tier is its own container
     # (the klms-worker service runs the messenger tier from the same image).
     command: ["web"]
