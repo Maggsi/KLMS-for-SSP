@@ -24,8 +24,7 @@ class Sponsor implements HistoryAwareEntity
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $name = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
@@ -68,7 +67,7 @@ class Sponsor implements HistoryAwareEntity
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
 
