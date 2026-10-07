@@ -96,9 +96,23 @@ footer,
   left: 0;
   right: 0;
   height: 15vmin;
-  // Match the body/news background so the chevron transition blends into the
-  // content below (issue #22).
-  color: vars.$body-bg;
+  // Same near-black as the news section below (vars.$body-bg) so the chevron
+  // merges into it; the V on top reads as an arrow against the hero. Carries
+  // the body scanline texture; background-attachment: fixed anchors it to the
+  // viewport (same phase as the body texture), so the lines run continuously.
+  background-color: vars.$body-bg;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.08) 3px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  background-attachment: fixed;
+  // Chevron: exact pentagon of the old inline SVG (replaces it).
+  // SVG (64,8) grid: (64,8)(0,8)(0,0)(32,7.9)(64,0) -> (100% 100%)(0 100%)(0 0)(50% 98.75%)(100% 0).
+  // The top edge is the V (dark section cuts into the band); bottom edge is flat.
+  clip-path: polygon(0 0, 50% 98.75%, 100% 0, 100% 100%, 0 100%);
 }
 
 .l-section-shape.pos_bottom {
