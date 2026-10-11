@@ -28,7 +28,7 @@ cd ..
 
 # Build both images (the IDM image is built from the separate IDM clone — see below)
 podman build -f docker/idm/Dockerfile -t klms-dot-idm \
-    /home/max/.hermes/cache/scratch/klms-dot/IDM-for-DoT
+    <path/to/IDM-clone>
 podman-compose build        # builds klms (context = this worktree)
 
 podman-compose up -d
@@ -151,7 +151,7 @@ normal CMS administration (pages, users, news).
    self-signup, so `app:user:create` is the only way in. The first-run init runs
    it for you (guarded by skip-if-exists); if you skip it, run it manually.
 
-> **Production note:** this is the bigboy test stack (port 8094, `null://null`
+> **Production note:** this is the local test stack (port 8094, `null://null`
 > mail). For a real deploy, point `SITE_BASE_HOST`/`MAILER_DSN` at production values
 > and put a reverse proxy (nginx/Traefik) in front — swapping `php -S` for
 > `php-fpm` is only an entrypoint + service change.

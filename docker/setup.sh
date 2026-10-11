@@ -4,7 +4,7 @@
 # DEFAULT (no prompts): generates a WORKING docker/.env:
 #   * auto-generated random secrets (openssl rand -hex 32) for APP_SECRET,
 #     IDM_APP_SECRET, the IDM API key, and the first admin password
-#   * auto-detected SITE_BASE_HOST (host LAN IP + :8094, e.g. 192.168.0.170:8094)
+#   * auto-detected SITE_BASE_HOST (host LAN IP + :8094, e.g. 192.0.2.10:8094)
 #   * the other sane defaults from .env.example
 # The generated secrets are persisted to .env, so re-runs do NOT rotate them
 # (an existing .env is reused as-is). .env is gitignored.
@@ -34,7 +34,7 @@ ask() {
   eval "$1=\$_v"
 }
 
-# detect_host -> the host's LAN IP + the published port, e.g. 192.168.0.170:8094
+# detect_host -> the host's LAN IP + the published port, e.g. 192.0.2.10:8094
 detect_host() {
   _ip=$(hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.' | head -n1)
   [ -n "$_ip" ] || _ip=$(ip -4 addr show 2>/dev/null | awk '/inet /{print $2}' | cut -d/ -f1 | grep -E '^192\.168\.|^10\.' | head -n1)
@@ -85,7 +85,7 @@ ask KLMS_MAILER_DSN "mail DSN (null://null = no mail; e.g. smtp://user:pass@host
 ask KLMS_MAILER_DEFAULT_SENDER_NAME "mail sender name" "KLMS"
 ask KLMS_MAILER_DEFAULT_SENDER_EMAIL "mail sender email" "noreply@example.test"
 ask KLMS_SITE_BASE_SCHEME "site base scheme (http|https)" "http"
-ask KLMS_SITE_BASE_HOST "site base host (what you browse to, e.g. 192.168.0.170:8094)" "$(detect_host)"
+ask KLMS_SITE_BASE_HOST "site base host (what you browse to, e.g. 192.0.2.10:8094)" "$(detect_host)"
 ask KLMS_RECAPTCHA3_ENABLED "reCAPTCHA v3 enabled (0|1)" "0"
 ask KLMS_MESSENGER_TRANSPORT_DSN "messenger transport DSN (doctrine://default = DB queue)" "doctrine://default"
 ask KLMS_SENTRY_DSN "Sentry DSN (empty = no error reporting)" ""

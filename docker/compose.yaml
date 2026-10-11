@@ -53,7 +53,7 @@ services:
       start_period: 30s
 
   idm:
-    # Built with: podman build -f docker/idm/Dockerfile -t klms-dot-idm /home/max/.hermes/cache/scratch/klms-dot/IDM-for-DoT
+    # Built with: podman build -f docker/idm/Dockerfile -t klms-dot-idm <path/to/IDM-clone>
     # (podman-compose cannot build with a foreign context — see README)
     image: klms-dot-idm
     restart: unless-stopped

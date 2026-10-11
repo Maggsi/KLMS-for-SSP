@@ -35,7 +35,7 @@ if ($uri !== '/' && $uri !== '' && $uri[0] === '/') {
 $_SERVER['SCRIPT_FILENAME'] = $base . '/index.php';
 $_SERVER['PHP_SELF'] = '/index.php';
 
-// TLS termination happens at the reverse proxy (Traefik/nginx) in front of the
+// TLS termination happens at the reverse proxy in front of the
 // container; php -S itself only ever sees plain HTTP. Without this, Symfony
 // thinks the scheme is http: framework.session.cookie_secure=auto then drops
 // the session cookie on every HTTPS login (same fix as the VM vhost's
