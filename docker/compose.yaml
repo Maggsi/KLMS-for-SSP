@@ -1,0 +1,213 @@
+name: klms-dot
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16
+    restart: unless-stopped
+    # Hardening: drop all capabilities + no setuid. (No `user:` override — the
+    # postgres image drops to the postgres user itself via a non-setuid gosu
+    # invoked by root; forcing a user breaks data-dir init.)
+    # `cap_drop: [ALL]` also strips the caps that entrypoint's root-init needs
+    # (chown the data dir + gosu's setuid/setgid), so we re-add the minimal set
+    # that lets it do exactly that and nothing more.
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID]
+    security_opt: [no-new-privileges:true]
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Two-tier user passwords, consumed by initdb/setup.sh (run inside this
+      # container on first start).
+      KLMS_DB_PASSWORD: ${KLMS_DB_PASSWORD}
+      KLMS_MIGRATION_DB_PASSWORD: ${KLMS_MIGRATION_DB_PASSWORD}
+      IDM_DB_PASSWORD: ${IDM_DB_PASSWORD}
+      IDM_MIGRATION_DB_PASSWORD: ${IDM_MIGRATION_DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    # Light perf tuning (shared_buffers 256MB, effective_cache_size 1GB,
+    # work_mem 16MB, maintenance_work_mem 64MB). The official postgres image
+    # keeps its main config at $PGDATA/postgresql.conf and has NO conf.d
+    # include_dir, so the tuning is passed as -c flags on the server command
+    # (the docker entrypoint forwards args to postgres). max_connections
+    # stays at the default.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=64MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      # First boot runs initdb/setup.sh (role + DB creation). Probe failures
+      # during this window do NOT count toward `retries`, so the container
+      # stays "starting" (not "unhealthy") until the period elapses.
+      start_period: 30s
+
+  idm:
+    # Built with: podman build -f docker/idm/Dockerfile -t klms-dot-idm <path/to/IDM-clone>
+    # (podman-compose cannot build with a foreign context — see README)
+    image: klms-dot-idm
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${IDM_APP_ENV}
+      APP_SECRET: ${IDM_APP_SECRET}
+      DATABASE_URL: ${IDM_DATABASE_URL}
+      # Referenced by the config via %env(...)% — must be present (empty is fine).
+      SENTRY_DSN: ${IDM_SENTRY_DSN:-}
+      MAILER_DSN: ${IDM_MAILER_DSN:-null://null}
+      # First-run init (idm-entrypoint.sh): creates the API key (value MUST match
+      # KLMS_IDM_APIKEY in the KLMS .env) + the default admin user.
+      KLMS_IDM_APIKEY: ${KLMS_IDM_APIKEY}
+      KLMS_IDM_APIKEY_NAME: ${KLMS_IDM_APIKEY_NAME:-klms}
+      KLMS_ADMIN_EMAIL: ${KLMS_ADMIN_EMAIL:-}
+      KLMS_ADMIN_PASSWORD: ${KLMS_ADMIN_PASSWORD:-}
+      KLMS_ADMIN_NICKNAME: ${KLMS_ADMIN_NICKNAME:-admin}
+    # No host port: KLMS reaches the IDM over the internal docker network
+    # (http://idm:8095, see .env.example KLMS_IDM_URL). Exposing it on the host
+    # was only for local testing.
+    healthcheck:
+      # "app + DB up": the HTTP probe proves the web tier answers,
+      # `php /hcdb.php` proves the database is reachable (baked probe,
+      # image ships pdo_pgsql). /hcdb.php is a FILE on purpose: podman-compose
+      # interpolates bare $VAR in the healthcheck string (a bare $p/$ok would
+      # be replaced with the env value or empty, breaking the probe).
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8095/ && php /hcdb.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      # First boot runs doctrine:schema:create + Symfony console boot (tens of
+      # seconds). Probe failures during this window do NOT count toward
+      # `retries`, so the container stays "starting" (not "unhealthy").
+      start_period: 60s
+    volumes:
+      - idm-var:/app/var
+
+  klms:
+    build:
+      context: ..
+      dockerfile: docker/klms/Dockerfile
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # service_healthy (not service_started): the idm entrypoint runs the
+      # first-run init (IDM API key + admin user) before its web server starts,
+      # so this gate guarantees the init is done before KLMS comes up.
+      idm:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${KLMS_APP_ENV}
+      APP_SECRET: ${KLMS_APP_SECRET}
+      DATABASE_URL: ${KLMS_DATABASE_URL}
+      KLMS_IDM_URL: ${KLMS_IDM_URL}
+      KLMS_IDM_APIKEY: ${KLMS_IDM_APIKEY}
+      KLMS_IDM_AUTH: ${KLMS_IDM_AUTH}
+      MAILER_DSN: ${KLMS_MAILER_DSN}
+      MAILER_DEFAULT_SENDER_NAME: ${KLMS_MAILER_DEFAULT_SENDER_NAME}
+      MAILER_DEFAULT_SENDER_EMAIL: ${KLMS_MAILER_DEFAULT_SENDER_EMAIL}
+      SITE_BASE_SCHEME: ${KLMS_SITE_BASE_SCHEME}
+      SITE_BASE_HOST: ${KLMS_SITE_BASE_HOST}
+      RECAPTCHA3_ENABLED: ${KLMS_RECAPTCHA3_ENABLED}
+      MESSENGER_TRANSPORT_DSN: ${KLMS_MESSENGER_TRANSPORT_DSN}
+      SENTRY_DSN: ${KLMS_SENTRY_DSN}
+      CARTO_BASEMAP_API_KEY: ${KLMS_CARTO_BASEMAP_API_KEY}
+      # php -S is single-threaded by default and stalls on a blocked request;
+      # a few workers remove head-of-line blocking (one process per container
+      # is kept — the built-in server's worker threads are not extra processes).
+      PHP_CLI_SERVER_WORKERS: "4"
+    ports:
+      - "8104:8094"
+    # One container = one process: the web tier is its own container
+    # (the klms-worker service runs the messenger tier from the same image).
+    command: ["web"]
+    healthcheck:
+      # "app + DB up": the HTTP probe proves the web tier answers,
+      # `php /hcdb.php` proves the database is reachable (baked probe,
+      # image ships pdo_pgsql).
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8094/ && php /hcdb.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      # First boot runs doctrine:schema:create + Symfony console boot (tens of
+      # seconds). Probe failures during this window do NOT count toward
+      # `retries`, so the container stays "starting" (not "unhealthy").
+      start_period: 60s
+    volumes:
+      - klms-var:/app/var
+      - klms-public:/app/public/images
+      - klms-media:/app/public/media
+      - klms-uploads:/app/public/uploads
+
+  klms-worker:
+    # The messenger worker, from the SAME image as klms (one process per
+    # container — no supervisor inside the container). The worker exits after
+    # its --time-limit=3600; `restart: unless-stopped` brings a fresh one up.
+    image: klms-dot_klms
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${KLMS_APP_ENV}
+      APP_SECRET: ${KLMS_APP_SECRET}
+      DATABASE_URL: ${KLMS_DATABASE_URL}
+      KLMS_IDM_URL: ${KLMS_IDM_URL}
+      KLMS_IDM_APIKEY: ${KLMS_IDM_APIKEY}
+      KLMS_IDM_AUTH: ${KLMS_IDM_AUTH}
+      MAILER_DSN: ${KLMS_MAILER_DSN}
+      MESSENGER_TRANSPORT_DSN: ${KLMS_MESSENGER_TRANSPORT_DSN}
+      SENTRY_DSN: ${KLMS_SENTRY_DSN}
+    # No host port: internal-only, like idm.
+    command: ["worker"]
+    healthcheck:
+      # Two checks, both must pass:
+      # 1) the messenger:consume process is alive. pgrep is NOT in the
+      #    php:8.4-cli image, so grep the raw /proc cmdlines. The [e]
+      #    bracket matches the worker's "messenger:consume" but NOT this
+      #    healthcheck's own shell (which carries the literal "messenger:consum[e]").
+      # 2) the database is reachable (baked probe, image ships pdo_pgsql) —
+      #    catches a ZOMBIE worker (process alive but DB unreachable).
+      # No bare $VAR in this string: podman-compose interpolates them (a bare
+      # $p/$ok would be replaced with the env value or empty, breaking the probe).
+      test: ["CMD-SHELL", "grep -q 'messenger:consum[e]' /proc/[0-9]*/cmdline && php /hcdb.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    # Shared with the klms web container: the schema-bootstrap flock() lock
+    # (klms-schema.lock) + marker (klms-schema.done) live here so only ONE of
+    # the two containers runs doctrine:schema:create on a fresh volume.
+      # First boot runs doctrine:schema:create + Symfony console boot (tens of
+      # seconds). Probe failures during this window do NOT count toward
+      # `retries`, so the container stays "starting" (not "unhealthy").
+      start_period: 60s
+    volumes:
+      - klms-var:/app/var
+
+volumes:
+  pgdata:
+  idm-var:
+  klms-var:
+  klms-public:
+  klms-media:
+  klms-uploads:
