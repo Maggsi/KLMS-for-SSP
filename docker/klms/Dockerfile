@@ -33,8 +33,15 @@ COPY . .
 # (Real values are injected at runtime via compose `environment:`; the secret
 #  .env stays on the host and is NOT baked in.)
 COPY docker/.env.placeholder .env
+# COMPOSER_ALLOW_SUPERUSER: since composer 2.10 running as root WITHOUT this
+# env silently DISABLES plugins - the symfony/runtime plugin then never
+# generates vendor/autoload_runtime.php and every `bin/console` (worker!) dies
+# with "Symfony Runtime is missing". The official composer image sets this
+# itself; in the php base image we must set it explicitly.
+ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts \
     && composer dump-autoload --no-dev \
+    && test -f vendor/autoload_runtime.php \
     && mkdir -p var/cache var/log
 
 # Writable dirs (also mounted as volumes at runtime; mkdir so the image works standalone)
