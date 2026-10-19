@@ -2,7 +2,10 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main-nav-content" aria-controls="main-nav-content" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
-    <a href="/"><img class="header-logo" src="{{ asset("build/images/logo-header-menu.png") }}"/></a>
+    {# Same source as the hero logo: admin upload (style.logo) with the
+       baked-in KLMS lockup only as fallback. #}
+    {% set logo = settings.get('style.logo') %}
+    <a href="/"><img class="header-logo" src="{{ logo is not empty ? logo : asset("build/images/logo-header-menu.png") }}" alt="Logo"/></a>
     <div class="collapse navbar-collapse" id="main-nav-content">        
 	<ul class="navbar-nav mr-auto">
             {% set root = nav.renderNavByName('main_menu') %}

@@ -223,6 +223,10 @@ footer,
 
 .header-logo {
   padding-right: 30px;
+  // Admin-set style.logo is full-resolution (hero art); the navbar brand
+  // must stay at navbar scale no matter what image is uploaded.
+  height: 2.5rem;
+  width: auto;
 }
 
 .list-group-hover .list-group-item:hover {
