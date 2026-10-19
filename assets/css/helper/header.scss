@@ -42,9 +42,8 @@
         }
     }
 
-	.videobox {
-			display: none !important;
-	}
+	// NOTE: .videobox must stay visible on mobile - the portrait halftone
+	// background is painted on it (see klms.scss); only the <video> is hidden.
 
     #rightTopBar {
 	display: none !important;
