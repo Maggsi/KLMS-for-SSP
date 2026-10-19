@@ -15,7 +15,10 @@
 	margin-bottom: -7rem;
 
         .head-content .logo {
-            max-height: 5.5rem;
+            // Scale the hero lockup with the viewport (source PNG is 2.5k
+            // wide, so it stays crisp at these sizes); floor keeps the old
+            // 5.5rem on short screens.
+            max-height: clamp(5.5rem, 18vh, 14rem);
 	    margin-bottom: 20px;
 
         }
@@ -39,9 +42,8 @@
         }
     }
 
-	.videobox {
-			display: none !important;
-	}
+	// NOTE: .videobox must stay visible on mobile - the portrait halftone
+	// background is painted on it (see klms.scss); only the <video> is hidden.
 
     #rightTopBar {
 	display: none !important;
