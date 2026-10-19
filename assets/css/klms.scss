@@ -77,7 +77,10 @@ footer,
   height: 100%;
   z-index: -1000;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.40);
+  // Halftone fallback behind the hero video: shows while the video loads
+  // and wherever the video's aspect ratio doesn't cover the box.
+  background: rgba(0, 0, 0, 0.40)
+    url("../../public/media/header_hero_bg.webp") center / cover no-repeat;
 }
 
 .vid-overlay {
