@@ -89,7 +89,23 @@ footer,
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.40);
+  // Readability scrim over the hero art: darker strip under the navbar,
+  // a soft dark vignette behind the centered headline/stats, plus a
+  // uniform base tint. Layers stack multiplicatively over the image.
+  background:
+    radial-gradient(
+      ellipse 60% 45% at 50% 45%,
+      rgba(0, 0, 0, 0.65),
+      transparent 75%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.3) 140px,
+      rgba(0, 0, 0, 0.25) 240px,
+      rgba(0, 0, 0, 0.45) 100%
+    ),
+    rgba(0, 0, 0, 0.5);
   z-index: -999;
 }
 
@@ -161,18 +177,16 @@ footer,
     background-color: #000;
   }
 
-  .vid-overlay {
+  // Mobile: swap the hero art to the portrait halftone and drop the video
+  // (the image used to be painted over a hidden .videobox via .vid-overlay;
+  // the overlay is now reserved for the readability scrim, so the art moves
+  // to .videobox — which is no longer display:none on mobile).
+  .videobox {
     background-image: url("../../public/media/header_dot_bg.webp");
-    background-position: center;
-    /* Center the image */
-    background-repeat: no-repeat;
-    /* Do not repeat the image */
-    background-size: cover;
-    /* Resize the background image to cover the entire container */
   }
 
-  .videobox {
-    display: none !important;
+  .videobox video {
+    display: none;
   }
 }
 
