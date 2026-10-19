@@ -191,7 +191,20 @@ class ShopController extends AbstractController
                 switch ($action) {
                     case 'cancel':
                         $this->shopService->cancelOrder($order);
-                        $this->sumupService->delete((string)$order->getCheckoutId());
+                        $checkoutId = $order->getCheckoutId();
+                        if ($checkoutId !== null && (string)$checkoutId !== '') {
+                            // Cleaning up the SumUp side must never abort the
+                            // local cancel - an unreachable/stale checkout is
+                            // SumUp's to expire, the user's order is already
+                            // cancelled at this point.
+                            try {
+                                $this->sumupService->delete((string)$checkoutId);
+                            } catch (\Throwable $e) {
+                                $ref = $this->paymentErrorRef($user);
+                                $this->reportPaymentError($e, $ref, 'checkout delete during order cancel (order #' . $order->getId() . ')');
+                                $this->addFlash('warning', 'Die Bestellung wurde storniert, die Zahlung konnte aber nicht automatisch zurückgezogen werden. Falls bereits bezahlt wurde, melde dich mit der Referenz ' . $ref . ' bei einem Admin.');
+                            }
+                        }
                         break;
                     default:
                         $this->addFlash('error', "Invalid action specified.");
@@ -233,10 +246,17 @@ class ShopController extends AbstractController
                 $payFromEmail = $user->getEmail();
 
                 $checkoutId = $this->sumupService->createCheckout($amount, $currency, $checkoutRef, $payToEmail, $checkoutRef, $payFromEmail);
+                if ($checkoutId === null) {
+                    // SumUp integration disabled in settings - without this
+                    // guard the template got a null checkoutId and the widget
+                    // silently never loaded.
+                    throw new \RuntimeException('SumUp integration is disabled (lan.signup.payment_sumupenabled).');
+                }
                 $this->shopService->saveCheckoutId($order, $checkoutId);
             } catch (\Exception $e) {
-                $this->logger->error('Unexpected SumUp error');
-                $this->addFlash('error', 'Fehler beim Erstellen der Zahlung.');
+                $ref = $this->paymentErrorRef($user);
+                $this->reportPaymentError($e, $ref, 'checkout create for order #' . $order->getId());
+                $this->addFlash('error', 'Die Zahlung konnte nicht vorbereitet werden. Bitte versuche es erneut oder melde dich mit der Referenz ' . $ref . ' bei einem Admin.');
                 return $this->redirectToRoute('shop_orders');
             }
 
@@ -282,8 +302,34 @@ class ShopController extends AbstractController
             }
             return $this->redirectToRoute('shop_orders');
         } catch (\Exception $e) {
-             $this->addFlash('error', 'Fehler beim Prüfen der Zahlung.');
+            $ref = $this->paymentErrorRef($user);
+            $this->reportPaymentError($e, $ref, 'payment verify for order #' . $order->getId() . ' (checkoutId=' . $checkoutId . ')');
+            $this->addFlash('error', 'Die Zahlung konnte nicht geprüft werden. Bitte melde dich mit der Referenz ' . $ref . ' bei einem Admin.');
             return $this->redirectToRoute('shop_orders');
         }
+    }
+
+    /**
+     * Short human-quotable reference for payment problems, embedded in the
+     * user-facing error message so admins can grep the matching log line.
+     */
+    private function paymentErrorRef(User $user): string
+    {
+        return sprintf('%s-%s', date('Ymd-His'), substr((string)$user->getId(), -4));
+    }
+
+    /**
+     * Structured, greppable log entry for every swallowed payment error.
+     * The SumUp SDK's exception messages drop the HTTP body, so include
+     * class + message and (if present) the wrapped Guzzle previous.
+     */
+    private function reportPaymentError(\Throwable $e, string $ref, string $context): void
+    {
+        $detail = get_class($e) . ': ' . $e->getMessage();
+        $prev = $e->getPrevious();
+        if ($prev !== null) {
+            $detail .= ' | previous: ' . get_class($prev) . ': ' . $prev->getMessage();
+        }
+        $this->logger->error(sprintf('[payment %s] %s | %s', $ref, $context, $detail));
     }
 }
