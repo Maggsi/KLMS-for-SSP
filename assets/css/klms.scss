@@ -221,6 +221,15 @@ footer,
 }
 
 
+// Content pages: admin HTML can contain fixed-pixel-width images (e.g. the
+// Lageplan floor plans at width="972"). On narrow screens those cannot
+// text-wrap; scroll them sideways instead of clipping at the card edge.
+.content-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .header-logo {
   padding-right: 30px;
   // Admin-set style.logo is full-resolution (hero art); the navbar brand
