@@ -1,7 +1,10 @@
-# Docker stack for KLMS-for-SSP + IDM-for-DoT
+# Docker stack for KLMS-for-SSP + IDM-for-SSP
 
 A podman-compose stack that runs the KLMS-for-SSP fork (branch `main`) and the
-IDM-for-DoT fork (branch `develop`) as a self-contained test environment.
+IDM-for-SSP fork (branch `main`, [separate repo](https://github.com/Maggsi/IDM-for-SSP))
+as a self-contained environment. **This repo owns the full-stack `compose.yaml`
+and the KLMS image; the IDM image build lives in the IDM repo**
+([`docker/README.md`](https://github.com/Maggsi/IDM-for-SSP/blob/main/docker/README.md)).
 
 ## Quick start
 
@@ -26,9 +29,9 @@ cd docker/
 cp .env.example .env        # test values are fine for local
 cd ..
 
-# Build both images (the IDM image is built from the separate IDM clone — see below)
-podman build -f docker/idm/Dockerfile -t klms-dot-idm \
-    <path/to/IDM-clone>
+# Build both images (the IDM image is built from the separate IDM repo — see below)
+git clone https://github.com/Maggsi/IDM-for-SSP.git /path/to/IDM-for-SSP
+podman build -f /path/to/IDM-for-SSP/docker/idm/Dockerfile -t klms-dot-idm /path/to/IDM-for-SSP
 podman-compose build        # builds klms (context = this worktree)
 
 podman-compose up -d
@@ -52,11 +55,13 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 > volume, so it is wiped together with `pgdata` on `down -v` and a fresh volume
 > re-bootstraps. So a fresh `up -d` just works; no manual `schema:create` needed.
 
-> **Why the IDM image is built separately:** the IDM fork's code is NOT in the KLMS
-> worktree. `podman-compose build` resolves a service's `dockerfile` path *relative to
+> **Why the IDM image is built separately:** the IDM fork's code is NOT in this
+> repo, and its image build (Dockerfile + entrypoint) lives in the
+> [IDM-for-SSP repo](https://github.com/Maggsi/IDM-for-SSP), not here.
+> `podman-compose build` resolves a service's `dockerfile` path *relative to
 > its build context*, so it cannot build an image whose Dockerfile lives outside the
 > context. The `idm` service therefore references a pre-built `klms-dot-idm` image
-> (`image:` instead of `build:`); build it with the `podman build -f` command above.
+> (`image:` instead of `build:`); build it from the IDM clone as shown above.
 
 ## First-time setup (clone → admin UI)
 
@@ -69,7 +74,7 @@ walkthrough. Refine freely.)
 ```bash
 git clone https://github.com/Maggsi/KLMS-for-SSP.git && cd KLMS-for-SSP
 # The IDM fork's code is NOT in this repo — clone it separately (build context):
-git clone https://github.com/mrhund/IDM-for-DoT.git
+git clone https://github.com/Maggsi/IDM-for-SSP.git
 ```
 
 Requires `podman` + `podman-compose` (docker 29 has **no** compose plugin — never
@@ -78,7 +83,7 @@ Requires `podman` + `podman-compose` (docker 29 has **no** compose plugin — ne
 ### 2. Build the two images
 
 ```bash
-podman build -f docker/idm/Dockerfile -t klms-dot-idm /path/to/IDM-for-DoT
+podman build -f /path/to/IDM-for-SSP/docker/idm/Dockerfile -t klms-dot-idm /path/to/IDM-for-SSP
 podman build -f docker/klms/Dockerfile -t klms-dot_klms .
 ```
 
@@ -161,7 +166,7 @@ normal CMS administration (pages, users, news).
 | Service     | Port | Purpose                                   |
 |-------------|------|-------------------------------------------|
 | postgres    | 5432 | `klms_dot` + `idm_dot` databases         |
-| idm         | 8095 | IDM-for-DoT REST API (internal only)     |
+| idm         | 8095 | IDM REST API (internal only)             |
 | klms        | 8094 | KLMS-for-SSP web tier (php -S)          |
 | klms-worker | —    | messenger worker (internal only)         |
 

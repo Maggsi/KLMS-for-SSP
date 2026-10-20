@@ -53,8 +53,11 @@ services:
       start_period: 30s
 
   idm:
-    # Built with: podman build -f docker/idm/Dockerfile -t klms-dot-idm <path/to/IDM-clone>
-    # (podman-compose cannot build with a foreign context — see README)
+    # Built from the separate IDM repo:
+    #   podman build -f /path/to/IDM-for-SSP/docker/idm/Dockerfile \
+    #       -t klms-dot-idm /path/to/IDM-for-SSP
+    # (see https://github.com/Maggsi/IDM-for-SSP/blob/main/docker/README.md;
+    #  podman-compose cannot build with a foreign context — see README)
     image: klms-dot-idm
     restart: unless-stopped
     cap_drop: [ALL]
