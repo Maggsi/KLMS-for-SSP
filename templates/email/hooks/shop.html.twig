@@ -3,9 +3,11 @@
 {% block main %}
 {% set text = settings.get('email.shop.text') %}
 {% set org = settings.get('site.organisation') %}
+<div class="ssp-card">
+<p class="ssp-kicker">SSP://ORDER #{{ order.id }}</p>
 <h1>Bestellung #{{ order.id }}</h1>
 <p>
-{% if text is empty %}Danke für deine Bestellung bei der DoT-LAN!{% else %}{{ tex | raw }}{% endif %}
+{% if text is empty %}Danke für deine Bestellung bei der lastLAN!{% else %}{{ text | raw }}{% endif %}
 </p>
 <div class="my-2">
 {% include 'site/shop/_order.html.twig' %}
@@ -33,6 +35,6 @@ In der <a href="{{ url('shop_orders') }}">Bestellübersicht</a> kannst du sehen,
 {% endif %}
 {% endif %}
 </div>
-<p></p>
 {% include 'email/components/greetings.html.twig' %}
+</div>
 {% endblock %}

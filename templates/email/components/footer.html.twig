@@ -1,5 +1,5 @@
 <div class="container py-2">
-    <div class="row small">
+    <div class="row small ssp-footer">
         <div class="col text-left">
             {{ settings.get('site.organisation') }}
         </div>
@@ -14,5 +14,8 @@
                 <a  href="{{ url('email_unsubscribe', {'token' : unsubscribe}) }}">Unsubscribe</a>
             {% endif %}
         </div>
+    </div>
+    <div class="row">
+        <div class="col ssp-hudline" style="text-align:center;padding-top:6px;">SSP://KLMS &nbsp;·&nbsp; SYSTEM MAIL</div>
     </div>
 </div>

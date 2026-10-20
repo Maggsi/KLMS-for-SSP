@@ -3,7 +3,8 @@
 {% block subject %}{{ subject | default('') }}{% endblock %}
 
 {% block body %}
-<div class="container">
+<div style="background-color:#0e0e12;color:#f3eff6;">
+  <div class="container">
   <div id="header" class="text-center mb-4">
     {% block header %}
       {% include 'email/components/header.html.twig' %}
@@ -20,6 +21,7 @@
       {% include 'email/components/footer.html.twig' %}
     </div>
     {% endblock %}
+  </div>
   </div>
 </div>
 {% endblock %}
