@@ -280,6 +280,17 @@ body {
     box-shadow: 0 0 8px rgba(253, 217, 1, 0.3);
     color: #f3eff6;
   }
+
+  // Bootstrap's $input-disabled-bg (#e9ecef) beat the rule above on
+  // disabled inputs (profile: IDM-verified nickname/email/... fields),
+  // leaving light-gray boxes in the dark theme. Keep them dark; muted
+  // text + reduced opacity still communicates the non-editable state.
+  &:disabled, &[readonly] {
+    background-color: vars.$surface-high;
+    border-color: #48474c;
+    color: vars.$light-muted;
+    opacity: 1;
+  }
 }
 
 // Bootstrap 4 renders <input type="file"> as `.form-control-file` (NOT
@@ -314,6 +325,81 @@ body {
     outline: none;
     border-color: #fdd901;
     box-shadow: 0 0 8px rgba(253, 217, 1, 0.3);
+  }
+}
+
+// Input-group icon prepends/appendends (profile, login, admin forms all use
+// them via klms_bootstrap_4_layout): Bootstrap default is light-gray #e9ecef.
+.input-group-text {
+  background-color: vars.$surface-container;
+  border-color: #48474c;
+  color: vars.$light-muted;
+}
+
+// Symfony's bootstrap_4 form theme renders FileType as
+// .custom-file-input + .custom-file-label (Bootstrap default: white field,
+// gray "Browse" button).
+.custom-file-label {
+  background-color: vars.$surface-high;
+  border-color: #48474c;
+  color: vars.$light-muted;
+
+  &::after {
+    background-color: vars.$surface-container;
+    border-left-color: #48474c;
+    color: #fdd901;
+  }
+
+  &.disabled, &[disabled] {
+    background-color: vars.$surface-high;
+    color: vars.$light-muted;
+  }
+}
+
+// Selects (Symfony BS4 theme applies .custom-select; default white field,
+// disabled light-gray).
+.custom-select {
+  background-color: vars.$surface-high;
+  border-color: #48474c;
+  color: #f3eff6;
+  border-radius: 0;
+
+  &:disabled {
+    background-color: vars.$surface-high;
+    border-color: #48474c;
+    color: vars.$light-muted;
+  }
+
+  &:focus {
+    border-color: #fdd901;
+    box-shadow: 0 0 8px rgba(253, 217, 1, 0.3);
+  }
+}
+
+// Disabled custom checkboxes/radios (login "Angemeldet bleiben" etc.):
+// Bootstrap paints the box light-gray.
+.custom-control-input:disabled ~ .custom-control-label::before,
+.custom-control-input[disabled] ~ .custom-control-label::before {
+  background-color: vars.$surface-high;
+}
+
+// Pagination hover flashed Bootstrap's light-gray.
+.page-link:hover {
+  background-color: vars.$surface-container;
+  color: #fdd901;
+}
+
+// Breadcrumbs (gallery event pages): Bootstrap default is a light-gray bar
+// with light-on-light links.
+.breadcrumb {
+  background-color: vars.$surface-container;
+
+  .breadcrumb-item {
+    color: vars.$light-muted;
+
+    a { color: #f3eff6; }
+    + .breadcrumb-item::before { color: vars.$light-muted; }
+    &.active { color: #fdd901; }
   }
 }
 
