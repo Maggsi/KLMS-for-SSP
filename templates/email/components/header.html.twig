@@ -9,11 +9,11 @@
         <div style="padding-top:1.5rem;padding-bottom:1.5rem;">
         <a href="{{ url('news') }}">
             {% if settings.get('style.logo_email') is not empty %}
-                <img style="max-width:100%;height:auto;" class="logo {% if settings.get('style.logo_full_height') %}logo-full-height{% endif %}" src="{{ absolute_url(settings.get('style.logo_email')) }}" alt="Logo"/>
+                <img style="max-height:215px;max-width:100%;width:auto;height:auto;" src="{{ absolute_url(settings.get('style.logo_email') | imagine_filter('mail_logo')) }}" alt="Logo"/>
             {% elseif settings.get('style.logo') is not empty %}
-                <img style="max-width:100%;height:auto;" class="logo {% if settings.get('style.logo_full_height') %}logo-full-height{% endif %}" src="{{ absolute_url(settings.get('style.logo')) }}" alt="Logo"/>
+                <img style="max-height:215px;max-width:100%;width:auto;height:auto;" src="{{ absolute_url(settings.get('style.logo') | imagine_filter('mail_logo')) }}" alt="Logo"/>
             {% else %}
-                <img style="max-width:min(100%,420px);height:auto;" src="{{ absolute_url(asset('build/images/lastlan-logo-cropped.png')) }}" alt="lastLAN"/>
+                <img style="max-height:215px;max-width:100%;width:auto;height:auto;" src="{{ absolute_url(asset('build/images/lastlan-logo-cropped.png') | imagine_filter('mail_logo')) }}" alt="lastLAN"/>
             {% endif %}
         </a>
         </div>
