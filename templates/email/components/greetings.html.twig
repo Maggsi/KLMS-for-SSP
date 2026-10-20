@@ -3,6 +3,6 @@
 {{ settings.get('email.signature') | raw }}
 {% else %}
 Liebe Grüße<br>
-{% if org is not empty %}{{ org }}{% else %}<span style="font-family:'Iceland','Lucida Console','Courier New',monospace;color:#fdd901;letter-spacing:.28em;text-transform:uppercase;">Sissi State Punks</span>{% endif %}
+{% if org is not empty %}{{ org }}{% else %}<span style="font-family:'Iceland','Lucida Console','Courier New',monospace;color:#fdd901;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:break-word;">Sissi State Punks</span>{% endif %}
 {% endif %}
 </p>

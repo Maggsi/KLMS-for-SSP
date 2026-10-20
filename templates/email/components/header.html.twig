@@ -13,7 +13,7 @@
             {% elseif settings.get('style.logo') is not empty %}
                 <img style="max-width:100%;height:auto;" class="logo {% if settings.get('style.logo_full_height') %}logo-full-height{% endif %}" src="{{ absolute_url(settings.get('style.logo')) }}" alt="Logo"/>
             {% else %}
-                <span style="font-family:'Iceland','Lucida Console','Courier New',monospace;color:#fdd901;font-size:16px;letter-spacing:.28em;text-transform:uppercase;">SSP://LASTLAN</span>
+                <span style="font-family:'Iceland','Lucida Console','Courier New',monospace;color:#fdd901;font-size:14px;letter-spacing:.18em;text-transform:uppercase;overflow-wrap:break-word;">SSP://LASTLAN</span>
             {% endif %}
         </a>
         </div>

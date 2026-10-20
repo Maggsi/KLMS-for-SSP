@@ -119,9 +119,10 @@ a {
 }
 
 .ssp-hudline {
-    color: emailVars.$ssp-muted;
+    color: #9a9a9f;
     font-family: emailVars.$font-mono;
     font-size: 8px;
     letter-spacing: .3em;
     text-transform: uppercase;
+    overflow-wrap: break-word;
 }
