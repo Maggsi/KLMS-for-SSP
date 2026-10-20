@@ -280,6 +280,17 @@ body {
     box-shadow: 0 0 8px rgba(253, 217, 1, 0.3);
     color: #f3eff6;
   }
+
+  // Bootstrap's $input-disabled-bg (#e9ecef) beat the rule above on
+  // disabled inputs (profile: IDM-verified nickname/email/... fields),
+  // leaving light-gray boxes in the dark theme. Keep them dark; muted
+  // text + reduced opacity still communicates the non-editable state.
+  &:disabled, &[readonly] {
+    background-color: vars.$surface-high;
+    border-color: #48474c;
+    color: vars.$light-muted;
+    opacity: 1;
+  }
 }
 
 // Bootstrap 4 renders <input type="file"> as `.form-control-file` (NOT
