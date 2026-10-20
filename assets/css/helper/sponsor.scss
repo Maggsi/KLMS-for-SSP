@@ -1,0 +1,21 @@
+// Sponsor page rows: fixed square logo boxes (object-fit contain) so rows
+// stay even no matter how much transparent padding the uploaded logos carry.
+@use '../bootstrap-site' as bootstrap;
+
+.sponsor {
+  .sponsor-logo {
+    width: 300px;
+    height: 300px;
+    object-fit: contain;
+    max-width: 100%;
+  }
+}
+
+@include bootstrap.media-breakpoint-down(lg) {
+  .sponsor {
+    .sponsor-logo {
+      width: 200px;
+      height: 200px;
+    }
+  }
+}

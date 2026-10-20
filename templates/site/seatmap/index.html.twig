@@ -5,9 +5,13 @@
 {% block main %}
     {% set user = app.user is not empty ? app.user.user : null %}
     <div class="container mb-5">
+        <div class="row mb-2">
+            <div class="col">
+                <h1 class="text-center">Sitzplan</h1>
+            </div>
+        </div>
         <div class="card">
             <div class="card-body">
-                <h1 class="card-title text-center">Sitzplan</h1>
                 {% set tempSeat = user is not empty and user is seated_user and user is not registered_user %}
                 <div class="container seatmap-legend my-3">
                     <div class="row card-body justify-content-center">

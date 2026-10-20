@@ -50,7 +50,7 @@
 			{{ encore_entry_link_tags('app') }}
 		{% endblock %}
 	</head>
-	<body>
+	<body{% if app.request.pathInfo == '/' %} class="page-startpage"{% endif %}>
 		{% if (settings.get('site.prepage.show') == "1" and not (app.request.pathInfo starts with '/admin' or app.request.pathInfo == '/login' or app.request.pathInfo == '/reset')) and not is_granted('ROLE_ADMIN') %}
 			<div class="container mt-4">
 				{{ settings.get('site.prepage.text')|raw }}

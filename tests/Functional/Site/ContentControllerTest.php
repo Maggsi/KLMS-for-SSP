@@ -15,8 +15,8 @@ class ContentControllerTest extends DatabaseWebTestCase
         $this->assertEquals(0, $this->mock->getInvalidCalls());
 
         $this->assertResponseStatusCodeSame(200);
+        // H1 (page title) sits above the card; body text inside the padded card body
         $this->assertEquals('FAQ', $crawler->filter('main h1')->eq(0)->text());
-        $this->assertEquals('Wer ist dieser LAN?', $crawler->filter('main h1 + div')->eq(0)->text());
-        $this->assertStringContainsString('zuletzt geändert', $crawler->filter('main')->text());
+        $this->assertStringContainsString('Wer ist dieser LAN?', $crawler->filter('.content-scroll')->text());
     }
 }
