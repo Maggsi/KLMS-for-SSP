@@ -1,0 +1,64 @@
+// SSP brand tokens — see ~/ssp-brand/DESIGN.md (sissistatepunks.com design system)
+$main-color: #fdd901;          // hazard yellow — sole interaction driver
+$ssp-bg: #0e0e12;              // near-black void
+$ssp-surface: #131318;
+$ssp-surface-container: #19191e;
+$ssp-surface-high: #1f1f25;
+$ssp-text: #f3eff6;            // cool white
+$ssp-muted: #71717a;
+$ssp-on-primary: #3d4a00;      // olive-ink on yellow
+$ssp-secondary: #ff6e81;       // coral accent only
+$ssp-border: rgba(72, 71, 76, .35);
+$ssp-border-accent: rgba(253, 217, 1, .28);
+$ssp-glow: rgba(253, 217, 1, .45);
+
+$font-gudea: 'Gudea', 'Segoe UI', Helvetica, Arial, sans-serif;   // body + display
+$font-mono: 'Iceland', 'Lucida Console', 'Courier New', monospace; // machine voice
+
+$body-bg: $ssp-bg;
+$body-color: $ssp-text;
+$shadow-color: #000;
+
+$light-muted:rgba(#fff,.90);
+
+$navbar-dark-color: $light-muted;
+$navbar-dark-hover-color: #fff;
+
+$primary: $main-color;
+$secondary: $ssp-secondary;
+$link-color: $main-color;
+
+$theme-colors:  (
+  "error": #dc3545,
+  "light-muted": $light-muted,
+);
+
+$mark-padding: 0;
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 600px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px
+);
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 1000px,
+  xl: 1200px
+);
+
+$sizes: (
+  1: 1%
+);
+
+$enable-rounded: false;   // brand: chamfer or square, never pill
+$enable-shadows: true;
+
+$box-shadow-sm: 0 1.6px 3.6px 0 rgba($shadow-color,.132),0 .3px .9px 0 rgba($shadow-color,.108);
+$box-shadow:    0 3.2px 7.2px 0 rgba($shadow-color,.132),0 .6px 1.8px 0 rgba($shadow-color,.108);
+$box-shadow-lg: 0 6.4px 14.4px 0 rgba($shadow-color,.132),0 1.2px 3.6px 0 rgba($shadow-color,.108);
+
+$card-avatar-size:6rem;

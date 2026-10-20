@@ -1,0 +1,143 @@
+{% embed "modules/modals/skeleton.html.twig"
+    with {
+    'id': 'showPaymentModal',
+    'title' : 'Ticket #' ~ ticket.id,
+    'dialogClass' : 'modal-md'
+} %}
+    {% block modalBody %}
+        {{ form_start(form) }}
+        {% set dateformat = "d.m.Y H:i" %}
+        {% set status = ticket.state %}
+        {% set statusLabels = {
+            'NEW': 'Ohne Zuordnung',
+            'REDEEMED': 'Zugeordnet',
+            'PUNCHED': 'Checked-in'
+        } %}
+        {% set statusBadges = {
+            'NEW': 'badge-danger',
+            'REDEEMED': 'badge-success',
+            'PUNCHED': 'badge-warning'
+        } %}
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-4 mr-2">
+                    <i class="fa fa-ticket" style="font-size: clamp(3rem, 10vw, 7rem);"></i>
+                </div>
+                <div class="col">
+                    <p>
+                        <i class="fas fa-keyboard fa-fw mr-2" title="Code"></i>
+                        <span title="Number: {{ ticket.code }}" class="d-inline-block text-monospace">{{ ticket.code }}</span>
+                    </p>
+                    <p>
+                        <i class="fas fa-euro fa-fw mr-2" title="Käufer"></i>
+                        {% if ticket.shopOrderPosition is not empty %}
+                            <span class="d-inline-block" title="Bestellnummer">&numero; {{ ticket.shopOrderPosition.order.id }}</span>&nbsp;|&nbsp;<span class="d-inline-block">{{ ticket.shopOrderPosition.order.orderer | username }}</span>
+                        {% else %}
+                            <span class="d-inline-block text-muted">nicht gekauft</span>
+                        {% endif %}
+                    </p>
+                    <p>
+                        <i class="fas fa-shopping-cart fa-fw mr-2" title="Gekauft"></i>
+                        <span class="d-inline-block">{{ ticket.createdAt | date(dateformat) }}</span>
+                    </p>
+                    <p>
+                        <i class="fas fa-money-check fa-fw mr-2" title="Eingelöst"></i>
+                        {% if ticket.redeemedAt is not empty %}
+                            <span class="d-inline-block">{{ ticket.redeemedAt | date(dateformat) }}</span>
+                        {% endif %}
+                    </p>
+                    <p>
+                        <i class="fas fa-info-circle fa-fw mr-2" title="Status"></i>
+                        {% if status is not null %}
+                            {% set key = status.name %}
+                            <span class="badge {{ statusBadges[key]|default('badge-light') }}">
+                                {{ statusLabels[key]|default(key) }}
+                            </span>
+                        {% else %}
+                            <span class="d-inline-block text-muted">Status unbekannt</span>
+                        {% endif %}
+                    </p>
+                    {% if ticket.comment %}
+                        <p>
+                            <i class="fas fa-comment fa-fw mr-2" title="Kommentar"></i>
+                            <span class="d-inline-block">{{ ticket.comment }}</span>
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+            <hr/>
+            {% if user %}
+            {# TODO make check for personal data here and add DOB or make link to user and add button there #}
+            <div class="row">
+                <div class="col-4 mr-2">
+                    {% set img = user | user_image %}
+                    {% if img is not empty %}
+                        <img src="{{ img | imagine_filter('user_img') }}" alt="Image"/>
+                    {% else %}
+                        <i class="far fa-user-circle" style="font-size: clamp(3rem, 12vw, 8rem);"></i>
+                    {% endif %}
+                </div>
+                <div class="col">
+                    <i class="fas fa-headset fa-fw mr-2" title="Name"></i>
+                    <h1 title="Nickname: {{ user.nickname }}"
+                        class="h3 d-inline-block">{{ user.nickname|defaultBadge('Nickname n.v.') }}</h1>
+                    <br>
+                    <i class="fas fa-signature fa-fw mr-2" title="Name"></i>
+                    <h2 class="h4 d-inline-block">
+                        <span title="Vorname: {{ user.firstname }}">{{ user.firstname|defaultBadge('Vorname n.v.') }}</span>
+                        <span title="Nachname: {{ user.surname }}">{{ user.surname|defaultBadge('Nachname n.v.') }}</span>
+                    </h2>
+                    <p>
+                        <i class="far fa-envelope fa-fw mr-2"
+                           title="E-Mail Adresse"></i>{{ user.email|defaultBadge('E-Mailadresse n.v.') }}
+                    </p>
+                    <p>
+                        <i class="fas fa-mobile-alt fa-fw mr-2"
+                           title="Telefonnummer"></i>{{ user.phone|defaultBadge(' n.v. ') }}
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <div class="row">
+                <div class="col">
+                    <span class="text-muted">Ticket nicht eingelöst.</span>
+                    <div class="d-flex form-group">
+                        {{ form_widget(form.user) }}
+                        {{ _self.confirm_button_form(form.assign ?? null, 'Ticket zuweisen') }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% macro confirm_button_form(field, title, danger = false) %}
+            {% if field is defined and field is not null %}
+                {% set attrs = {
+                    'class': 'btn btn-sm mr-1 ' ~ (danger ? 'btn-outline-danger' : 'btn-outline-dark')
+                } %}
+                {% if danger %}
+                    {% set attrs = attrs|merge({
+                        'data-toggle': 'confirmModal',
+                        'data-modal-title': 'Bestätigen',
+                        'data-modal-text': 'Sind Sie sicher?'
+                    }) %}
+                {% endif %}
+                {{ form_widget(field, {
+                    label: title,
+                    attr: attrs
+                }) }}
+            {% endif %}
+        {% endmacro %}
+        <hr/>
+        <div class="container d-flex">
+            {{ _self.confirm_button_form(form.unassign ?? null, 'Ticket freigeben') }}
+            {{ _self.confirm_button_form(form.delete ?? null, ticket.redeemed ? 'Ticket freigeben & löschen' : 'Ticket löschen', true) }}
+            {{ _self.confirm_button_form(form.punch ?? null, 'Ticket checkin') }}
+            {{ _self.confirm_button_form(form.unpunch ?? null, 'Ticket checkout') }}
+        </div>
+        {{ form_end(form) }}
+    {% endblock %}
+    {% block modalFooter %}
+        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Schließen</button>
+    {% endblock %}
+{% endembed %}

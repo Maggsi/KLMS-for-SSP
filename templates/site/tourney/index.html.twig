@@ -1,0 +1,70 @@
+{% extends 'site/siteBase.html.twig' %}
+
+{% block title %}{{ settings.get('site.title') }} - Turniere{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="card-title text-center">Turniere</h1>
+                <div>{{ settings.get('lan.tourney.text') | raw }}</div>
+            </div>
+        </div>
+        <div>
+            {% set participates = participates | default(false) %}
+            {% set teams = teams_registered | default([]) %}
+            {% set games = games_active | default([]) %}
+            {% set groupGamesIncomplete = group_games_incomplete | default([]) %}
+                        {% if app.user and vapid_public_key %}
+                <div class="mb-3 text-right">
+                    <button id="push-subscribe-btn" class="btn btn-outline-primary" data-vapid-key="{{ vapid_public_key }}" title="Erhalte Browser-Push-Benachrichtigungen, wenn ein Turnier startet oder du dran bist.">
+                        <i class="fa-solid fa-bell"></i>  Push-Benachrichtigungen abonnieren
+                    </button>
+                </div>
+            {% endif %}
+            {% if token | default(null) is not null %}
+                <div class="mb-3 text-right">
+                    Verfügbare Token: <span class="badge badge-pill {{ token > 0 ? 'badge-primary' : 'badge-secondary' }} p-2" title="Noch {{ token }} Token verfügbar"><i class="fa-solid fa-coins"></i> {{ token }}/{{ constant('App\\Service\\TourneyService::TOKEN_COUNT') }}</span>
+                </div>
+            {% endif %}
+            <div class="accordion mb-3" id="tourney-list">
+                {% for tourney in tourneys | filter(t => t.id in teams | keys) %}
+                    {% if loop.first %}
+                        <h2>Meine Turniere</h2>
+                    {% endif %}
+                    {% include 'site/tourney/_card.html.twig' with {
+                        'tourney' : tourney,
+                        'registered' : true,
+                        'expand' : (tourney == (show ?? null)),
+                        'tm': teams[tourney.id],
+                        'current_games' : (games[tourney.id] ?? []),
+                        'forms': forms[tourney.id] ?? [],
+                        'hasIncompleteGroupGames': groupGamesIncomplete[tourney.id] ?? false
+                    } %}
+                    {% if loop.last %}
+                        <h2 class="mt-4">Weitere Turniere</h2>
+                    {% endif %}
+                {% endfor %}
+                {% for tourney in tourneys | filter(t => t.id not in teams | keys) %}
+                    {% include 'site/tourney/_card.html.twig' with {
+                        'tourney' : tourney,
+                        'registered' : false,
+                        'expand' : (tourney == (show ?? null)),
+                        'forms': forms[tourney.id] ?? [],
+                        'availableToken': token | default(null)
+                    } %}
+                {% else %}
+                    <span>Es sind keine weiteren Turniere vorhanden.</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('tourney') }}
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('tourney') }}
+{% endblock %}

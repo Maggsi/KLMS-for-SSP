@@ -1,0 +1,147 @@
+{% extends 'admin/adminBase.html.twig' %}
+
+{% block title %}KLMS - Admin{% endblock %}
+{% block siteheading %}<i class="fas fa-images fa-fw"></i> Gallery{% endblock %}
+
+{% block main %}
+<div class="container-fluid mt-4">
+    <div class="row">
+
+        
+
+        <div class="col-12">
+            <a href="{{ path('admin_gallery_upload') }}" class="btn btn-success">
+                        <i class="fas fa-upload me-2"></i> Einzel Upload
+                    </a>
+                    <a href="{{ path('admin_gallery_bulk_upload') }}" class="btn btn-success">
+                        <i class="fas fa-cloud-upload me-2"></i> Mehrfach Upload
+                    </a>
+                    <a href="{{ path('admin_gallery_events') }}" class="btn btn-success">
+                        <i class="fas fa-cogs me-2"></i> Events verwalten
+                    </a>
+                </div>
+
+      
+
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+
+            {% if eventsWithImages is empty %}
+                <div class="card-header">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Noch keine Bilder in der Galerie vorhanden.
+                </div>
+                </div>
+            {% else %}
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card ml-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">Events</h5>
+                            </div>
+                            <div class="list-group list-group-flush">
+                                <button type="button" class="list-group-item list-group-item-action active" onclick="showAllEvents()">
+                                    <i class="fas fa-images me-2"></i> Alle Events
+                                    <span class="badge bg-primary rounded-pill float-end">
+                                        {% set totalImages = 0 %}
+                                        {% for eventName, data in eventsWithImages %}
+                                            {% set totalImages = totalImages + data.images|length %}
+                                        {% endfor %}
+                                        {{ totalImages }}
+                                    </span>
+                                </button>
+                                {% for eventName, data in eventsWithImages %}
+                                    <button type="button" class="list-group-item list-group-item-action" onclick="showEvent('{{ eventName }}')">
+                                        <i class="fas fa-calendar-alt me-2"></i> {{ eventName|length > 20 ? eventName|slice(0, 17) ~ '...' : eventName }}
+                                        <span class="badge bg-secondary rounded-pill float-end">
+                                            {{ data.images|length }}
+                                        </span>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9  mt-3">
+                        {% for eventName, data in eventsWithImages %}
+                            <div class="event-section" data-event="{{ eventName }}">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">
+                                        {% if data.event %}
+                                            {{ data.event.name }}
+                                        {% else %}
+                                            {{ eventName }}
+                                        {% endif %}
+                                        <small class="text-muted">({{ data.images|length }} Bilder)</small>
+                                    </h5>
+                                    {% if data.event %}
+                                        <span class="badge bg-info">Priorität: {{ data.event.priority }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="row g-3">
+                                    {% for photo in data.images %}
+                                        <div class="col-6 col-md-4 col-lg-3">
+                                            <div class="card">
+                                       <img src="{{ photo.getImagePath()|imagine_filter('gallery_thumb') }}"
+                                           alt="{{ (photo.title ?? ('Bild ' ~ photo.uuid)) }}"
+                                                     class="card-img-top"
+                                                     style="height: 150px; object-fit: cover;">
+                                                <div class="card-body p-2">
+                                                    {% if photo.title %}
+                                                        <h6 class="card-title small mb-1">{{ photo.title }}</h6>
+                                                    {% endif %}
+                                                    <p class="card-text small text-muted mb-2">
+                                                        <i class="fas fa-calendar me-1"></i> {{ photo.createdAt|date('d.m.Y H:i') }}
+                                                        {% if photo.galleryEvent %}
+                                                            <br><i class="fas fa-tag me-1"></i> {{ photo.galleryEvent.name }}
+                                                        {% endif %}
+                                                    </p>
+                                                    <div class="btn-group w-100" role="group">
+                                                        <a href="{{ photo.getImagePath() }}" 
+                                                           target="_blank" 
+                                                           class="btn btn-outline-primary btn-sm"
+                                                           title="Anschauen">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <a href="{{ path('admin_gallery_edit', {'uuid': photo.uuid}) }}" 
+                                                           class="btn btn-outline-primary btn-sm"
+                                                           title="Bearbeiten">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <form method="post" 
+                                                              action="{{ path('admin_gallery_delete', {'uuid': photo.uuid}) }}"
+                                                              onsubmit="return confirm('Bild wirklich löschen?')"
+                                                              class="d-inline">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ photo.uuid) }}">
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                                    title="Löschen">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <hr class="my-4">
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('admin_gallery') }}
+{% endblock %}

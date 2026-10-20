@@ -1,0 +1,118 @@
+<ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.get('_route') starts with 'admin_dashboard' %}active{% endif %}" href="{{ path('admin_dashboard') }}"><i class="fas fa-home fa-fw"></i> Dashboard </a>
+    </li>
+    {% if is_granted('ROLE_ADMIN_NEWS') or is_granted('ROLE_ADMIN_CONTENT') or is_granted('ROLE_ADMIN_MEDIA') %}
+        <li class="nav-item">
+            <a class="nav-link" href="#contentMenu" data-toggle="collapse"><i class="far fa-file-alt fa-fw"></i> Inhalt</a>
+            <ul id="contentMenu" class="collapse show list-group">
+                {% if is_granted('ROLE_ADMIN_NEWS') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_news' %}active{% endif %}" href="{{ path('admin_news') }}"><i class="far fa-newspaper fa-fw"></i> News </a>
+                    </li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN_CONTENT') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_content' %}active{% endif %}" href="{{ path('admin_content') }}"><i class="far fa-file-alt fa-fw"></i> Content </a>
+                    </li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN_MEDIA') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_media' %}active{% endif %}" href="{{ path('admin_media') }}"><i class="far fa-file-image fa-fw"></i> Media </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_gallery' %}active{% endif %}" href="{{ path('admin_gallery') }}"><i class="fas fa-images fa-fw"></i> Galerie </a>
+                    </li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN_CONTENT') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_teamsite' %}active{% endif %}" href="{{ path('admin_teamsite') }}"><i class="fas fa-sitemap fa-fw"></i> Teamsite </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_navigation' %}active{% endif %}" href="{{ path('admin_navigation') }}"><i class="fas fa-map-signs fa-fw"></i> Navigation </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_poll' %}active{% endif %}" href="{{ path('admin_poll') }}"><i class="fas fa-poll fa-fw"></i> Umfragen </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_sponsor' %}active{% endif %}" href="{{ path('admin_sponsor') }}"><i class="fas fa-coins fa-fw"></i> Sponsor </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_faq' %}active{% endif %}" href="{{ path('admin_faq') }}"><i class="fas fa-question-circle fa-fw"></i> FAQ </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_booking' %}active{% endif %}" href="{{ path('admin_booking') }}"><i class="fas fa-calendar-check fa-fw"></i> Buchungen </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_setting' %}active{% endif %}" href="{{ path('admin_setting') }}"><i class="fas fa-th-large fa-fw"></i> Einstellungen </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </li>
+    {% endif %}
+    {% if is_granted('ROLE_ADMIN_USER') %}
+        <li class="nav-item">
+            <a class="nav-link" href="#communityMenu" data-toggle="collapse"><i class="fas fa-user-friends fa-fw"></i> Community</a>
+            <ul id="communityMenu" class="collapse show list-group">
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') starts with 'admin_user' %}active{% endif %}" href="{{ path('admin_user') }}"><i class="fas fa-user fa-fw"></i> User </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') starts with 'admin_clan' %}active{% endif %}" href="{{ path('admin_clan') }}"><i class="fas fa-users fa-fw"></i> Clan </a>
+                </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_clandiscount' %}active{% endif %}" href="{{ path('admin_clandiscount') }}"><i class="fas fa-percent fa-fw"></i> Clan Discount </a>
+                    </li>
+            </ul>
+        </li>
+    {% endif %}
+    {% if is_granted('ROLE_ADMIN_PAYMENT') or is_granted('ROLE_ADMIN_SEATMAP') or is_granted('ROLE_ADMIN_TOURNEY') %}
+        <li class="nav-item">
+            <a class="nav-link" href="#lanMenu" data-toggle="collapse"><i class="fas fa-laptop-house fa-fw"></i> LAN</a>
+            <ul id="lanMenu" class="collapse show list-group">
+                {% if is_granted('ROLE_ADMIN_PAYMENT') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') starts with 'admin_shop' and 'addon' not in app.request.get('_route') %}active{% endif %}" href="{{ path('admin_shop') }}"><i class="fas fa-cart-shopping fa-fw"></i> Bestellungen </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') starts with 'admin_shop_addon' %}active{% endif %}" href="{{ path('admin_shop_addon') }}"><i class="fas fa-plus fa-fw"></i> Addons </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') == 'admin_payment' %}active{% endif %}" href="{{ path('admin_payment') }}"><i class="fas fa-ticket fa-fw"></i> Tickets </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') starts with 'admin_payment_quick_checkin' %}active{% endif %}" href="{{ path('admin_payment_quick_checkin') }}"><i class="fas fa-qrcode fa-fw"></i> QR Check-In </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') starts with 'admin_payment_desktop_checkin' %}active{% endif %}" href="{{ path('admin_payment_desktop_checkin') }}"><i class="fas fa-barcode fa-fw"></i> Desktop Check-in </a>
+                </li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN_SEATMAP') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_seatmap' %}active{% endif %}" href="{{ path('admin_seatmap') }}"><i class="fas fa-chair fa-fw"></i> Seatmap </a>
+                    </li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN_TOURNEY') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_tourney' %}active{% endif %}" href="{{ path('admin_tourney') }}"><i class="fas fa-trophy fa-fw"></i> Turniere </a>
+                    </li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN_NEWS') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') starts with 'admin_beamer' %}active{% endif %}" href="{{ path('admin_beamer') }}"><i class="fas fa-tv fa-fw"></i> Beamer </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </li>
+    {% endif %}
+    {% if is_granted('ROLE_ADMIN_MAIL') %}
+        <li class="nav-item">
+            <a class="nav-link {% if app.request.get('_route') starts with 'admin_email' %}active{% endif %}" href="{{ path('admin_email') }}"><i class="far fa-envelope fa-fw"></i> E-Mails </a>
+        </li>
+    {% endif %}
+    {% if is_granted('ROLE_ADMIN_SUPER') %}
+        <li class="nav-item">
+            <a class="nav-link {% if app.request.get('_route') starts with 'admin_permission' %}active{% endif %}" href="{{ path('admin_permission') }}"><i class="fas fa-key fa-fw"></i> Berechtigungen </a>
+        </li>
+    {% endif %}
+</ul>

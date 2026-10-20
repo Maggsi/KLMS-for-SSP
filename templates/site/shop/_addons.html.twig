@@ -1,0 +1,43 @@
+<div class="row">
+    <div class="col">
+        <h2>Addons kaufen</h2>
+        <div class="mb-3">
+            {% if settings.get('lan.signup.info.addon') is not empty %}
+                {{ settings.get('lan.signup.info.addon') | raw }}
+            {% else %}
+                <p>
+                    Erweitere dein Gaming Erlebnis mit diesen tollen Add-ons!
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="row row-cols-1 row-cols-md-3">
+    {% for addon in addons %}
+        <div class="col mb-3">
+            <div class="card" data-addon-id="{{ addon.id }}">
+                <div class="card-body">
+                    <h4 class="my-0 font-weight-normal">{{ addon.name }}:</h4>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ (addon.price / 100) | format_currency('EUR') }}</h3>
+                    <div class="card-text">
+                        <p>{{ addon.description | raw }}</p>
+                        {% set item = attribute(form, "addon" ~ addon.id) %}
+                        <p>{{ form_help(item) }}</p>
+                        <div class="input-group d-flex justify-content-center">
+                            {% if addon.onlyOnce %}
+                                {{ form_widget(item) }}
+                            {% else %}
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Anzahl</span>
+                                </div>
+                                {{ form_widget(item) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

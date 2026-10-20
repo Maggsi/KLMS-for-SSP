@@ -1,0 +1,66 @@
+@use 'variables' as vars;
+@use '../bootstrap-site' as bootstrap;
+
+#header .head-wrap {
+    
+    .head-content {
+        text-align: center;
+        align-self: center;
+        color:#fff;
+
+    }
+
+    &.startpage {
+	height: 100vh;
+	margin-bottom: -7rem;
+
+        .head-content .logo {
+            // Scale the hero lockup with the viewport (source PNG is 2.5k
+            // wide, so it stays crisp at these sizes); floor keeps the old
+            // 5.5rem on short screens.
+            max-height: clamp(5.5rem, 18vh, 14rem);
+	    margin-bottom: 20px;
+
+        }
+    }
+}
+
+@include bootstrap.media-breakpoint-up(xl) {
+        .nav-only-collapsed {
+                display: none !important;
+        }
+}
+
+@include bootstrap.media-breakpoint-down(lg) {
+    #header .head-wrap {
+
+        &.startpage {
+            .head-content .logo {
+                display: none !important;
+
+            }
+        }
+    }
+
+	// NOTE: .videobox must stay visible on mobile - the portrait halftone
+	// background is painted on it (see klms.scss); only the <video> is hidden.
+
+    #rightTopBar {
+	display: none !important;
+    }
+
+    // Fix dropdown alignment in collapsed mobile navbar
+    .navbar-collapse {
+        .nav-only-collapsed {
+            .dropdown-menu-right {
+                right: auto;
+                left: 0;
+            }
+            .dropdown-menu-lg {
+                min-width: 100%;
+            }
+        }
+    }
+}
+
+

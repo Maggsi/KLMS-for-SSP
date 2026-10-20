@@ -1,0 +1,117 @@
+{% extends 'admin/adminBase.html.twig' %}
+
+{% block title %}KLMS - Admin{% endblock %}
+{% block siteheading %}<i class="fas fa-home fa-fw"></i> Dashboard{% endblock %}
+{% block main %}
+    {# Community Statistics #}
+    {% if is_granted('ROLE_ADMIN_USER') %}
+        <h5><i class="fas fa-users fa-fw"></i> Community</h5>
+        <hr>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+            <div class="col mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h4 class="card-title text-primary">{{ communityStats.totalUsers }}</h4>
+                        <p class="card-text small text-muted">Gesamtbenutzer</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h4 class="card-title text-info">{{ communityStats.clansTotal }}</h4>
+                        <p class="card-text small text-muted">Clans</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h4 class="card-title text-warning">{{ communityStats.clansOpen }}</h4>
+                        <p class="card-text small text-muted">Clans offen</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+
+    {# Shop & Tickets Statistics #}
+    {% if is_granted('ROLE_ADMIN_PAYMENT') %}
+        <h5 class="mt-5"><i class="fas fa-shopping-cart fa-fw"></i> Shop & Tickets</h5>
+        <hr>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+            {# Ticket Sales #}
+            <div class="col mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Tickets Auslastung</h6>
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 style="width: {{ shopStats.ticketPercentage }}%;"
+                                 aria-valuenow="{{ shopStats.ticketPercentage }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ shopStats.ticketPercentage }}%
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            <strong>{{ shopStats.ticketsSold }}</strong> bezahlt
+                            von <strong>{{ shopStats.ticketsTotal }}</strong> verfügbar
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            {# Pending Orders #}
+            <div class="col mb-3">
+                <div class="card h-100" style="background-color:#19191e;">
+                    <div class="card-body">
+                        <h4 class="card-title text-danger">{{ shopStats.pendingOrders }}</h4>
+                        <p class="card-text small text-muted">Ausstehende Bestellungen</p>
+                        <a href="{{ path('admin_shop') }}" class="btn btn-sm btn-primary">Anzeigen</a>
+                    </div>
+                </div>
+            </div>
+
+            {# Revenue Week #}
+            <div class="col mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Umsatz diese Woche</h6>
+                        <h4 class="text-success">{{ shopStats.revenueWeek|number_format(2, ',', '.') }}€</h4>
+                    </div>
+                </div>
+            </div>
+
+            {# Revenue Month #}
+            <div class="col mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Umsatz diesen Monat</h6>
+                        <h4 class="text-info">{{ shopStats.revenueMonth|number_format(2, ',', '.') }}€</h4>
+                    </div>
+                </div>
+            </div>
+
+            {# Top Items #}
+            <div class="col mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Top-Artikel</h6>
+                        {% if shopStats.topItems %}
+                            <div class="small">
+                                {% for item in shopStats.topItems %}
+                                    <div class="d-flex justify-content-between py-1">
+                                        <span>{{ item.name|u.truncate(150, '...') }}</span>
+                                        <span class="badge bg-primary">{{ item.cnt }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted small">—</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    {% endblock %}

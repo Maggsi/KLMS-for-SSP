@@ -1,0 +1,24 @@
+@use 'variables' as vars;
+
+.hr-text {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: vars.$primary;
+  font-weight: lighter;
+  font-size: smaller;
+
+  &:before, &:after {
+    content: '';
+    flex: 1;
+  border-bottom: 1px solid vars.$primary;
+  }
+
+  &:not(:empty):before {
+    margin-right: .25em;
+  }
+
+  &:not(:empty):after {
+    margin-left: .25em;
+  }
+}

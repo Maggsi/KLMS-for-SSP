@@ -1,0 +1,99 @@
+{% extends 'site/siteBase.html.twig' %}
+
+{% block title %}Galerie - {{ parent() }}{% endblock %}
+
+{% block main %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center">
+                Galerie
+            </h1>
+            <p>Taucht ein in die Highlights vergangener Events! Hier findet ihr eine kleine Auswahl an Bildern, die die Atmosphäre, die Begeisterung und die besten Momente der DoT-LANs einfangen. Lasst euch inspirieren und freut euch auf das nächste Event!</p>
+            
+            {% if eventsWithImages is empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Noch keine Bilder in der Galerie vorhanden.
+                </div>
+            {% else %}
+                {# Event Navigation #}
+                <div class="mb-4">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="btn-group flex-wrap" role="group" aria-label="Event Navigation">
+                                <button type="button" class="btn btn-outline-primary active" onclick="showAllEvents()">
+                                    Alle Events
+                                </button>
+                                {% for eventName, data in eventsWithImages %}
+                                    <button type="button" class="btn btn-outline-primary" onclick="showEvent('{{ eventName }}')" title="{{ eventName }}">
+                                        {{ eventName|length > 20 ? eventName|slice(0, 17) ~ '...' : eventName }}
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Images by Event #}
+                {% for eventName, data in eventsWithImages %}
+                    <div class="event-section" data-event="{{ eventName }}">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="h3 mb-0">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                {{ eventName }}
+                                <small class="text-muted">({{ data.images|length }} Bilder)</small>
+                            </h2>
+                        </div>
+                        
+                        <div class="row g-3">
+                            {% for photo in data.images|slice(0, 8) %}
+                                <div class="col-6 col-md-4 col-lg-3 mb-4">
+                                    <div class="card border-0">
+                                        <a href="{{ photo.getImagePath() }}" 
+                                           class="glightbox" 
+                                           data-gallery="{{ eventName }}"
+                             data-title="{{ (photo.title ?? '') }}"
+                             data-description="{{ (photo.description ?? '') }}">
+                                            <img src="{{ photo.getImagePath()|imagine_filter('gallery_thumb') }}"
+                                 alt="{{ (photo.title ?? 'Bild') }}"
+                                                 class="card-img-top"
+                                                 loading="lazy"
+                                                 style="height: 200px; object-fit: cover;">
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if data.images|length > 8 %}
+                            <div class="text-center mb-4">
+                                {% if data.event %}
+                                    <a href="{{ path('gallery_event', {'id': data.event.id}) }}" class="btn btn-primary">
+                                        <i class="fas fa-images me-2"></i> Alle {{ data.images|length }} Bilder anzeigen
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {# GLightbox CSS #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    
+    {# GLightbox JS #}
+    <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+    
+    {# Gallery functionality #}
+    {{ encore_entry_script_tags('gallery') }}
+{% endblock %}

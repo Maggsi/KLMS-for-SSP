@@ -1,0 +1,50 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+    csrf_protection: true
+    http_method_override: false
+
+    # Enables session support. Note that the session will ONLY be started if you read or write from it.
+    # Remove or comment this section to explicitly disable session support.
+    session:
+        cookie_secure: auto
+        cookie_samesite: lax
+        cookie_lifetime: 604800
+        storage_factory_id: session.storage.factory.native
+        handler_id: session.handler.native_file
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+
+    #esi: true
+    #fragments: true
+    php_errors:
+        log: true
+
+    property_info:
+        enabled: true
+        with_constructor_extractor: false
+
+    rate_limiter:
+        poll_vote:
+            policy: 'sliding_window'
+            limit: 1
+            interval: '5 minutes'
+
+    http_client:
+        scoped_clients:
+            idm_client:
+                base_uri: '%env(KLMS_IDM_URL)%'
+                auth_basic: '%env(KLMS_IDM_AUTH)%'
+                max_redirects: 0
+                timeout: 5
+                max_duration: 10
+                headers:
+                    Accept: 'application/json'
+                    X-API-KEY: '%env(KLMS_IDM_APIKEY)%'
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file
+        http_client:
+            mock_response_factory: App\Tests\IdmServerMock

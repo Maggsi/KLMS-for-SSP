@@ -1,0 +1,25 @@
+{% if settings.get("lan.stats.show") %}
+    {% if settings.get("lan.stats.show_seats") %}
+        {% set display = [
+            {name: 'Plätze gesamt', key: 'tickets_total', icon: 'fas fa-users' },
+            {name: 'Reservierte Plätze', key: 'seats_taken', icon: 'fas fa-user' },
+            {name: 'Vorgemerkte Plätze', key: 'seats_locked', icon: 'fas fa-lock' },
+        ] %}
+    {% else %}
+        {% set display = [
+            {name: 'Plätze gesamt', key: 'tickets_total', icon: 'fas fa-users' },
+            {name: 'Plätze reserviert', key: 'seats_taken_locked_sum', icon: 'fas fa-user' },
+            {name: 'Plätze bezahlt', key: 'tickets_sold', icon: 'fas fa-money-bill' },
+        ] %}
+    {% endif %}
+    <div class="container mt-4">
+            <div class="card-body row justify-content-center">
+                {% for d in display %}
+                <div class="text-center col col-lg-2 col-md-3 col-sm-4 col-12 mb-1 mt-1">
+                    <div style="font-size: 1.75rem;"><i class="{{ d.icon }} fa-fw"></i> <span class="text-primary">{{ stats.get(d.key) }}</span></div>
+                    {{ d.name }}
+                </div>
+                {% endfor %}
+            </div>
+    </div>
+{% endif %}

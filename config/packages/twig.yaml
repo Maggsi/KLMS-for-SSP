@@ -1,0 +1,20 @@
+twig:
+    default_path: '%kernel.project_dir%/templates'
+    debug: '%kernel.debug%'
+    strict_variables: '%kernel.debug%'
+    form_themes:
+        - 'form/klms_bootstrap_4_layout.html.twig'
+        - 'form/select2_widget.html.twig'
+        - 'form/tinymce_widget.html.twig'
+    globals:
+        nav: '@App\Service\NavigationService'
+        settings: '@App\Service\SettingService'
+        sponsor: '@App\Service\SponsorService'
+        stats: '@App\Service\StatisticService'
+    paths:
+        '%kernel.project_dir%/assets/images': images
+        '%kernel.project_dir%/assets/css': styles
+
+when@test:
+    twig:
+        strict_variables: true

@@ -1,0 +1,85 @@
+# Documentation on how to configure the bundle can be found at: https://symfony.com/doc/current/bundles/LiipImagineBundle/basic-usage.html
+liip_imagine:
+    # valid drivers options include "gd" or "gmagick" or "imagick"
+    driver: "gd"
+
+    twig:
+        mode: lazy
+
+    webp:
+        generate: true
+
+    resolvers:
+        default:
+            web_path:
+                cache_prefix: cache
+
+    filter_sets:
+        cache: ~
+
+        thumbnail_small:
+            filters:
+                thumbnail:
+                    size: [ 200, 200 ]
+                    mode: inset
+                    allow_upscale: true
+
+        thumbnail_big:
+            filters:
+                thumbnail:
+                    size: [ 400, 400 ]
+                    mode: inset
+                    allow_upscale: true
+
+        card_img:
+            filters:
+                fixed:
+                    width: 600
+                    height: 240
+
+        news_header:
+            filters:
+                fixed:
+                    width: 1800
+                    height: 720
+
+        user_img:
+            filters:
+                fixed:
+                    width: 200
+                    height: 200
+
+        sponsor_logo:
+            filters:
+                downscale:
+                    max: [350, 350]
+
+        # email header logo: height-driven scaling (all mails render the logo
+        # at a fixed display height; width follows the aspect ratio).
+        # 430px source = 2x the 215px display height for crisp retina render;
+        # inset mode also caps absurdly wide uploads (2160 source = 1080 display).
+        # allow_upscale so tiny uploads still render crisp at the target height.
+        mail_logo:
+            filters:
+                thumbnail:
+                    size: [ 2160, 430 ]
+                    mode: inset
+                    allow_upscale: true
+
+        gallery_thumb:
+            filters:
+                thumbnail:
+                    size: [300, 200]
+                    mode: outbound
+                    allow_upscale: false
+
+        gallery_large:
+            filters:
+                downscale:
+                    max: [1200, 800]
+
+        beamer_news_image:
+            filters:
+                fixed:
+                    width: 1920
+                    height: 1080

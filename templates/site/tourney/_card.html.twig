@@ -1,0 +1,85 @@
+{% set registered = registered | default(false) %}
+{% set current_games = current_games | default([]) %}
+{% set expand = expand | default(false) %}
+{% set hasIncompleteGroupGames = hasIncompleteGroupGames | default(false) %}
+
+{% macro game_icon(tourney, games = [], tm = null, hasIncompleteGroupGames = false) %}
+    {% set TourneyStage = enum('\\App\\Entity\\TourneyStage') %}
+    {% set pendingGames = games | filter(g => g.isPending()) %}
+    {% if tourney.status == TourneyStage.Registration %}
+        <span class="badge badge-pill badge-success"> <i class="fa-solid fa-table-list"></i> Angemeldet</span>
+        {% if tm is not null and not tm.accepted %}
+            <span class="badge badge-pill badge-warning" title="Achtung: Jemand aus deinem Team muss deine Teilnahme noch bestätigen!"> <i class="fa-solid fa-triangle-exclamation"></i> Bestätigung ausstehend!</span>
+        {% endif %}
+    {% elseif tourney.status == TourneyStage.Seeding %}
+        <span class="badge badge-pill badge-primary"> <i class="fa-solid fa-tree"></i> Turnierbaum wird vorbereitet</span>
+    {% elseif tourney.status == TourneyStage.Running %}
+        <span class="badge badge-pill badge-primary"> <i class="fa-solid fa-gamepad"></i> Turnier läuft</span>
+        {% if pendingGames is not empty %}
+            <span class="badge badge-pill badge-secondary"> Du bist dran!</span>
+            <i title="Du bist dran zum Zocken!" class="fa-solid fa-gamepad fa-2xl text-primary fa-beat-fade"></i>
+        {% elseif games is not empty %}
+            {# Team hat noch ein zukünftiges Spiel (z.B. Loser-Bracket-Slot), Gegner steht nur noch nicht fest #}
+            <span class="badge badge-pill badge-info" title="Warte auf Gegner aus einem anderen Spiel"> <i class="fa-solid fa-hourglass-half"></i> Warten</span>
+        {% else %}
+            {% set finalGame = tourney.games | filter(g => g.parent is null and not g.isGroupStage()) | first %}
+            {% if tm is not null and finalGame is not null and finalGame.isDone() and finalGame.getWinner() == tm.team %}
+                <span class="badge badge-pill badge-success" title="Herzlichen Glückwunsch, du hast das Turnier gewonnen!"> <i class="fa-solid fa-trophy"></i> Turnier gewonnen!</span>
+            {% elseif tourney.groupCount > 0 and tm is not null and tm.team.groupKey is not null and hasIncompleteGroupGames %}
+                <span class="badge badge-pill badge-info" title="Alle eigenen Spiele beendet, warte auf andere Ergebnisse"> <i class="fa-solid fa-hourglass-half"></i> Warten</span>
+            {% else %}
+                <span class="badge badge-pill badge-secondary"> Ausgeschieden</span>
+            {% endif %}
+        {% endif %}
+    {% elseif tourney.status == TourneyStage.Finished %}
+        <span class="badge badge-pill badge-success"><i class="fa-solid fa-trophy"></i> Turnier beendet</span>
+    {% endif %}
+{% endmacro %}
+
+<div class="card tourney {% if registered %}registered{% endif %}" id="tourney-{{ tourney.id }}">
+    {% set TourneyStage = enum('\\App\\Entity\\TourneyStage') %}
+    <div class="card-header">
+        <h4 class="mb-0">
+        <button class="btn border border-primary btn-block d-flex justify-content-between align-items-center" type="button" data-toggle="collapse" data-target="#collapse-{{ tourney.id }}">
+            {{ tourney.name }}
+            <span class="statusbar">
+            {% if registered %}
+                {{ _self.game_icon(tourney, current_games, tm, hasIncompleteGroupGames) }}
+            {% elseif participates %}
+                {% if tourney.status == TourneyStage.Registration %}
+                    {% if availableToken is defined and tourney.token is defined %}
+                        {% if (availableToken - tourney.token) >= 0  %}
+                            {% set badgeColor = 'badge-primary' %}
+                            {% set badgeTitle = 'Du kannst dich für dieses Turnier anmelden (Kosten: '~tourney.token~' Token!' %}
+                        {% else %}
+                            {% set badgeColor = 'badge-secondary' %}
+                            {% set badgeTitle = 'Nicht genug Token für dieses Turnier :-(' %}
+                        {% endif %}
+                        <span class="badge badge-pill {{ badgeColor }}" title="{{ badgeTitle }}">{{ tourney.status.message }} <i class="fa-solid fa-coins"></i>  {{ tourney.token }}</span>
+                    {% else %}
+                        <span class="badge badge-pill badge-primary">{{ tourney.status.message }}</span>
+                    {% endif %}
+                {% elseif tourney.status != TourneyStage.Created %}
+                    <span class="badge badge-pill badge-secondary">{{ tourney.status.message }}</span>
+                {% endif %}
+            {% endif %}
+            </span>
+        </button>
+        </h4>
+    </div>
+    <div class="collapse{% if expand %} show{% endif %}" id="collapse-{{ tourney.id }}">
+            {% if tourney.status == TourneyStage.Registration and participates %}
+                {% if registered %}
+                    {% include 'site/tourney/_registered.html.twig' %}
+                {% else %}
+                    {% include 'site/tourney/_register.html.twig' %}
+                {% endif %}
+            {% elseif tourney.status == TourneyStage.Running and participates %}
+                {% include 'site/tourney/_running.html.twig' %}
+            {% elseif tourney.status == TourneyStage.Finished %}
+                {% include 'site/tourney/_result.html.twig' with {podium: podiums[tourney.id] ?? null} %}
+            {% else %}
+                {% include 'site/tourney/_card.body.html.twig' %}
+            {% endif %}
+    </div>
+</div>

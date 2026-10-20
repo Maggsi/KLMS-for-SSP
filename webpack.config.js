@@ -1,0 +1,151 @@
+const Encore = require('@symfony/webpack-encore');
+const Dotenv = require('dotenv-webpack');
+const fs = require('fs');
+const path = require('path');
+
+// Manually configure the runtime environment if not already configured yet by the "encore" command.
+// It's useful when you use tools that rely on webpack.config.js file.
+if (!Encore.isRuntimeEnvironmentConfigured()) {
+    Encore.configureRuntimeEnvironment(process.env.NODE_ENV || 'dev');
+}
+
+Encore
+    // directory where compiled assets will be stored
+    .setOutputPath('public/build/')
+    // public path used by the web server to access the output path
+    .setPublicPath('/build')
+    // only needed for CDN's or subdirectory deploy
+    //.setManifestKeyPrefix('build/')
+
+    /*
+     * ENTRY CONFIG
+     *
+     * Each entry will result in one JavaScript file (e.g. app.js)
+     * and one CSS file (e.g. app.css) if your JavaScript imports CSS.
+     * TODO rename all admin with admin_
+     */
+    .addEntry('app', './assets/js/app.js')
+    .addEntry('admin', './assets/js/admin.js')
+    .addEntry('permission', './assets/js/admin/permission.js')
+    .addEntry('navigation', './assets/js/admin/navigation.js')
+    .addEntry('media', './assets/js/admin/media.js')
+    .addEntry('teamsite', './assets/js/admin/teamsite.js')
+    .addEntry('sponsor', './assets/js/admin/sponsor.js')
+    .addEntry('admin_gallery', './assets/js/admin/gallery.js')
+    .addEntry('news', './assets/js/site/news.js')
+    .addEntry('seatmap', './assets/js/site/seatmap.js')
+    .addEntry('tourney', './assets/js/site/tourney.js')
+    .addEntry('shop', './assets/js/site/shop.js')
+    .addEntry('gallery', './assets/js/site/gallery.js')
+    .addEntry('faq', './assets/js/site/faq.js')
+    .addEntry('profile', './assets/js/site/profile.js')
+    .addEntry('admin_seatmap', './assets/js/admin/seatmap.js')
+    .addEntry('admin_tourney', './assets/js/admin/tourney.js')
+    .addEntry('admin_checkin', './assets/js/admin/checkin.js')
+    .addEntry('admin_desktop_checkin', './assets/js/admin/desktop-checkin.js')
+    .addStyleEntry('email', './assets/css/email.scss')
+    .addStyleEntry('booking', './assets/css/modules/booking.scss')
+
+    // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)
+    .enableStimulusBridge('./assets/js/controllers.json')
+
+    // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
+    .splitEntryChunks()
+
+    // will require an extra script tag for runtime.js
+    // but, you probably want this, unless you're building a single-page app
+    .enableSingleRuntimeChunk()
+
+    //Need to disable AMD-Loader with imports-loader for DataTables to work
+    .addLoader({
+        test: /datatables\.net.*/,
+        loader: 'imports-loader',
+        options: {
+            additionalCode:
+                "var define = false; /* Disable AMD for misbehaving libraries */",
+        },
+    })
+
+    /*
+     * FEATURE CONFIG
+     *
+     * Enable & configure other features below. For a full
+     * list of features, see:
+     * https://symfony.com/doc/current/frontend.html#adding-more-features
+     */
+    .cleanupOutputBeforeBuild()
+    .enableBuildNotifications()
+    .enableSourceMaps(!Encore.isProduction())
+    // enables hashed filenames (e.g. app.abc123.css)
+    .enableVersioning(Encore.isProduction())
+
+    // configure Babel
+    // .configureBabel((config) => {
+    //     config.plugins.push('@babel/a-babel-plugin');
+    // })
+
+    // enables and configure @babel/preset-env polyfills
+    .configureBabelPresetEnv((config) => {
+        config.useBuiltIns = 'usage';
+        config.corejs = '3.46';
+    })
+
+    // enables Sass/SCSS support
+    .enableSassLoader((options) => {
+        options.sassOptions = {
+            ...(options.sassOptions || {}),
+            quietDeps: true,
+        };
+    })
+
+    // uncomment if you use TypeScript
+    //.enableTypeScriptLoader()
+    //.enableBabelTypeScriptPreset()
+
+    // uncomment if you use React
+    //.enableReactPreset()
+
+    // uncomment to get integrity="..." attributes on your script & link tags
+    // requires WebpackEncoreBundle 1.4 or higher
+    .enableIntegrityHashes(Encore.isProduction())
+
+    // uncomment if you're having problems with a jQuery plugin
+    .autoProvidejQuery()
+
+    // enable WebPack5 Build Caching (EXPERIMENTAL)
+    //.enableBuildCache()
+
+    // Copy asset directories. `context` MUST be set explicitly:
+    // when node_modules/ is a symlink (e.g. agent worktrees reuse the main
+    // checkout's deps), webpack's context resolves to the REAL project dir,
+    // `from` becomes relative-with-../.. to it, and copy-webpack-plugin's
+    // `[path]` sanitizes each `../` to `_` -> TinyMCE skins land in
+    // build/skins/_/_/.../node_modules/... and the admin rich editor dies
+    // with 404s on /build/skins/ui/oxide/skin.min.css (v0.1.3 incident).
+    .copyFiles({
+        from: './assets/images',
+        to: 'images/[path][name].[hash:8].[ext]',
+        pattern: /\.(png|jpg|jpeg|svg|ico)$/
+    })
+
+    //copy TineMCE Skin Files
+    //`context` MUST be the REALPATH of the skins dir: when node_modules/ is a
+    //symlink (agent worktrees reuse the main checkout's deps), webpack's
+    //require.context hands the loader symlink-resolved (real) file paths while
+    //the default context stays the symlinked dir -> every `../` in `[path]`
+    //gets sanitized to `_` and skins land in build/skins/_/_/... with the admin
+    //rich editor 404ing on /build/skins/ui/oxide/skin.min.css (v0.1.3 incident).
+    .copyFiles({
+        from: './node_modules/tinymce/skins',
+        to: 'skins/[path][name].[ext]',
+        context: fs.realpathSync(path.resolve(__dirname, 'node_modules/tinymce/skins'))
+    })
+    //Load .env.local Variables into JS
+    .addPlugin(new Dotenv({
+        path: './.env.local',
+        systemvars: false,
+        ignoreStub: true,
+    }))
+    ;
+
+module.exports = Encore.getWebpackConfig();

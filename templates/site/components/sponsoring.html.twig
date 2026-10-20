@@ -1,0 +1,23 @@
+{% if sponsor.active() and settings.get("sponsor.banner.show")  %}
+    {% set s = sponsor.getRandom() %}
+    {% if s is not empty %}
+        <div id="foot-bar" class="container py-3">
+            {% if settings.get("sponsor.banner.show_title", true) %}
+            <h2>{{ settings.get("sponsor.banner.title") | default("Supported by") }}</h2>
+            {% endif %}
+            <div class="d-flex justify-content-center p-2">
+                <a {% if s.url is not empty %} href="{{ s.url }}" target="_blank" {% endif %}>
+                <img class="sponsor-banner-logo" src="{{ vich_uploader_asset(s, 'logoFile') | imagine_filter('sponsor_logo') }}" alt="{{ s.name }}">
+                </a>
+            </div>
+            <div class="text-center">
+                {% if settings.get("sponsor.banner.show_name", false) and s.name is not empty %}
+                <h5>{{ s.name }}</h5>
+                {% endif %}
+                {% if settings.get("sponsor.banner.show_text", false) %}
+                <p>{{ s.text | raw }}</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% endif %}

@@ -1,0 +1,29 @@
+// Sponsor page rows: fixed square logo boxes (object-fit contain) so rows
+// stay even no matter how much transparent padding the uploaded logos carry.
+@use '../bootstrap-site' as bootstrap;
+
+// Footer banner logo (sponsoring.html.twig) — class-based box instead of
+// the old inline max-width/max-height (same cleanup as .sponsor-logo).
+.sponsor-banner-logo {
+  max-width: 250px;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.sponsor {
+  .sponsor-logo {
+    width: 300px;
+    height: 300px;
+    object-fit: contain;
+    max-width: 100%;
+  }
+}
+
+@include bootstrap.media-breakpoint-down(lg) {
+  .sponsor {
+    .sponsor-logo {
+      width: 200px;
+      height: 200px;
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{% extends 'site/siteBase.html.twig' %}
+
+{% block title %}{{ settings.get('site.title') }} - Sitzplan{% endblock %}
+
+{% block main %}
+    {% set user = app.user is not empty ? app.user.user : null %}
+    <div class="container mb-5">
+        <div class="row mb-2">
+            <div class="col">
+                <h1 class="text-center">Sitzplan</h1>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                {% set tempSeat = user is not empty and user is seated_user and user is not registered_user %}
+                <div class="container seatmap-legend my-3">
+                    <div class="row card-body justify-content-center">
+                        <div class="col-md-4 col-lg-2 d-flex"><span class="seat seat-empty"></span><span class="align-self-center ml-1"> Frei </span></div>
+                        <div class="col-md-4 col-lg-2 d-flex"><span class="seat seat-taken"></span><span class="align-self-center ml-1"> Reserviert</span></div>
+                        <div class="col-md-4 col-lg-2 d-flex"><span class="seat seat-locked"></span><span class="align-self-center ml-1"> Gesperrt</span></div>
+                        {% if user is not empty %}
+                            <div class="col-md-4 col-lg-2 d-flex"><span class="seat seat-own"></span><span class="align-self-center ml-1">{{ tempSeat ? "Vorgemerkt" : "Dein Platz" }}</span></div>
+                            <div class="col-md-4 col-lg-2 d-flex"><span class="seat seat-clan-reserved"></span><span class="align-self-center ml-1"> Dein Clan</span></div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if settings.get('lan.seatmap.locked') %}
+                <div class="alert alert-danger text-center" role="alert">
+                    Der Sitzplan ist aktuell gesperrt und kann zurzeit nur von den Administratoren bearbeitet werden.
+                </div>
+                {% endif %}
+                {% if tempSeat %}
+                <div class="alert alert-warning text-center" role="alert">
+                    Dein Sitzplatz ist derzeit nur unverbindlich reserviert.
+                    <a href="{{ path('shop_checkout') }}" class="alert-link">Kaufe</a> ein Ticket für einen fixen Platz.
+                </div>
+                {% endif %}
+                {% if user is not empty and user is not seated_user and user is not registered_user %}
+                <div class="alert alert-warning text-center" role="alert">
+                {% if settings.get('lan.seatmap.allow_booking_for_non_paid', false) %}
+                    Du hast noch kein Ticket. Du kannst einen Sitzplatz unverbindlich vormerken.
+                    Kaufe ein <a href="{{ path('shop_checkout') }}">Ticket</a> um einen Fixplatz zu sichern.
+                {% else %}
+                    Kaufe und bezahle dein <a href="{{ path('shop_checkout') }}">Ticket</a> um einen Sitzplatz zu reservieren.
+                {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card " style="overflow-x: scroll;">
+            <div class="card-body p-0 justify-content-center">
+                    {% set seatmap_bg = settings.get('lan.seatmap.bg_image') %}
+                    {% if seatmap_bg is not empty %}
+                    <div class="seatmap">
+                        <img class="seatmap-bg" src="{{ seatmap_bg }}" aria-hidden="true">
+                    {% else %}
+                    <div id="seatmap" class="seatmap" style="width: {{ dim['x'] + 150 }}px; height: {{ dim['y'] + 150 }}px">
+                    {% endif %}
+                    <div class="seatmap-wrapper">
+                        {% for seat in seatmap %}
+                            {% if seat.type.value == 'info' %}
+                                <span style="top: {{ seat.posY }}px; left: {{ seat.posX }}px;" class="seat seat-information" data-html="true"
+                                      title="{{ seat.name }}"><i class="fas fa-info-circle"></i></span>
+                            {% else %}
+                                {% set ownSeat = user is not empty and seat.owner is not empty and seat.owner == user.uuid %}
+                                {% set ownClan = user is not empty and (
+                                        (seat.owner is not empty and seat.owner is in_clans(user.clans.toArray)) or
+                                        (seat.clanReservation is not empty and user is in_clan(seat.clanReservation))
+                                ) %}
+                                {% set taken = seat.owner is not empty %}
+                                {% set reserved = seat.clanReservation is not empty %}
+                                {% set locked = seat.type.value == 'locked' %}
+                                <a id="seat{{ seat.id }}" style="top: {{ seat.posY }}px; left: {{ seat.posX }}px;"
+                                    class="seat
+                                    {% if ownSeat %}
+                                        seat-own
+                                    {% elseif taken %}
+                                        seat-taken {% if ownClan %}seat-clan-reserved{% endif %}
+                                    {% elseif locked %}
+                                        seat-locked
+                                    {% elseif reserved %}
+                                        {% if ownClan %}seat-empty seat-clan-reserved{% else %}seat-locked{% endif %}
+                                    {% else %}
+                                        seat-empty
+                                    {% endif %}
+                                    "
+                                    data-chair-position="{{ seat.chairPosition.value }}" data-toggle="ajaxModal"
+                                    data-html="true" title="{{ include('site/seatmap/tooltip.html.twig') }}" href="{{ path('seatmap_seat_show', {'id' : seat.id}) }}"></a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('seatmap') }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        :root {
+            --seatmap-seat-size: {{ settings.get('lan.seatmap.styles.seat_size') }}px;
+            --seatmap-seat-tableWidthMultiplier: {{ settings.get('lan.seatmap.styles.seat_tablewidth_multiplier') }};
+            --seatmap-seat-bullet-size: {{ settings.get('lan.seatmap.styles.seat_bullet_size') }}px;
+            --seatmap-seat-border-radius: {{ settings.get('lan.seatmap.styles.seat_border_radius', 10) }}px;
+        }
+    </style>
+    {{ encore_entry_link_tags('seatmap') }}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'site/siteBase.html.twig' %}
+
+{% block title %}{{ settings.get('site.title') }} - Sponsoren{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <div class="row mb-2">
+            <div class="col">
+                <h1 class="text-center card-title">{{ settings.get("sponsor.page.title") | default("Sponsoren") }}</h1>
+                <p>{{ settings.get("sponsor.page.text") | raw }}</p>
+            </div>
+        </div>
+        {% if settings.get("sponsor.page.site_links") %}
+        <div class="row mb-4">
+            <div class="col">
+                {%  for category in categories %}
+                    <a class="btn btn-secondary ml-1" href="#cat{{ category.id }}">{{ category.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% for category in categories %}
+            <div class="row">
+                <div class="col">
+                    <div class="card w-100 mb-4 sponsor-category">
+                        {% if settings.get('sponsor.page.show_header', true) %}
+                        <div class="card-body" id="cat{{ category.id }}">
+                            <h2>{{ category.name }}</h2>
+                        </div>
+                        <div class="card-body">
+                        {% else %}
+                        <div class="card-body" id="cat{{ category.id }}">
+                        {% endif %}
+                            <ul class="list-unstyled">
+                            {% for s in category.sponsors | sort((a, b) => b.sortOrder <=> a.sortOrder) %}
+                                <li class="row mb-4 sponsor">
+                                    <div class="col-lg-5 col-12 align-self-center text-center">
+                                        {% if s.url is not empty %}<a href="{{ s.url }}" target="_blank">{% endif %}
+                                        {% if vich_uploader_asset(s, 'logoFile') is not null %}<img class="sponsor-logo" src="{{ vich_uploader_asset(s, 'logoFile') | imagine_filter('sponsor_logo') }}">{% endif %}
+                                        {% if s.url is not empty %}</a>{% endif %}
+                                    </div>
+                                    <div class="col-lg-7 col-12">
+                                        {% if s.name is not empty %}<h4 class="mt-2 mb-2 sponsor-name">{{ s.name }}</h4>{% endif %}
+                                        {{ s.text | raw }}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block sponsor %}
+    {# Don't show sponsor banner on sponsor page #}
+{% endblock %}

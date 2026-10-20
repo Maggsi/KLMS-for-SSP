@@ -1,0 +1,12 @@
+{% extends 'email/design/standard.html.twig' %}
+
+{% block main %}
+  {% set org = settings.get('site.organisation') %}
+  <div class="ssp-card">
+    <p class="ssp-kicker">SSP://INFO</p>
+    <h1>Benachrichtigung</h1>
+    <p>{{ message | raw }}</p>
+    <p>Du hast diese Nachricht nicht erwartet? Kontaktiere uns bitte.</p>
+    {% include 'email/components/greetings.html.twig' %}
+  </div>
+{% endblock %}

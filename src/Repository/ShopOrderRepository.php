@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Repository;
+
+use App\Entity\ShopOrder;
+use App\Entity\ShopOrderPosition;
+use App\Entity\ShopOrderPositionAddon;
+use App\Entity\ShopOrderPositionTicket;
+use App\Entity\ShopOrderStatus;
+use DateTimeInterface;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\UuidInterface;
+
+/**
+ * @extends ServiceEntityRepository<ShopOrder>
+ *
+ * @method ShopOrder|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ShopOrder|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ShopOrder[]    findAll()
+ * @method ShopOrder[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
+class ShopOrderRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, ShopOrder::class);
+    }
+
+    private function createQueryFilterBuilder(?UuidInterface $user, ?ShopOrderStatus $status): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('o');
+        if (!is_null($user)) {
+            $qb->andWhere('o.orderer = :orderer');
+            $qb->setParameter('orderer', $user);
+        }
+        if (!is_null($status)) {
+            $qb->andWhere('o.status = :status');
+            $qb->setParameter('status', $status);
+        }
+        return $qb;
+    }
+
+    public function queryOrders(?UuidInterface $user = null, ?ShopOrderStatus $status = null): array
+    {
+        return $this->createQueryFilterBuilder($user, $status)
+            ->addOrderBy('o.status', 'ASC')
+            ->addOrderBy('o.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countOrders(?UuidInterface $user = null, ?ShopOrderStatus $status = null): int
+    {
+        return $this->createQueryFilterBuilder($user, $status)
+            ->select('count(o)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Sum of all position prices (in cents) for orders with the given status,
+     * optionally limited to orders created on or after $since.
+     */
+    public function sumRevenue(ShopOrderStatus $status, ?DateTimeInterface $since = null): int
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->select('SUM(pos.price)')
+            ->join('o.shopOrderPositions', 'pos')
+            ->andWhere('o.status = :status')
+            ->setParameter('status', $status);
+
+        if ($since !== null) {
+            $qb->andWhere('o.createdAt >= :since')->setParameter('since', $since);
+        }
+
+        return (int) ($qb->getQuery()->getSingleScalarResult() ?? 0);
+    }
+}

@@ -1,0 +1,49 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    router.request_context.scheme: '%env(SITE_BASE_SCHEME)%'
+    router.request_context.host: '%env(SITE_BASE_HOST)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+        bind:
+            string $publicDir: '%kernel.project_dir%/public'
+            string $appSecret: '%env(APP_SECRET)%'
+            string $vapidSubject: '%env(VAPID_SUBJECT)%'
+            string $vapidPublicKey: '%env(VAPID_PUBLIC_KEY)%'
+            string $vapidPrivateKey: '%env(VAPID_PRIVATE_KEY)%'
+            'string $cartoBasemapApiKey': '%env(CARTO_BASEMAP_API_KEY)%'
+            string $walletWalletApiKey: '%env(WALLETWALLET_API_KEY)%'
+            string $walletWalletLogoDataUri: '%env(WALLETWALLET_LOGO_DATA_URI)%'
+            string $walletWalletIconDataUri: '%env(WALLETWALLET_ICON_DATA_URI)%'
+            string $walletWalletStripDataUri: '%env(WALLETWALLET_STRIP_DATA_URI)%'
+
+    #Register PSR-3 LogHandler for Sentry to resolve PSR-3 Placeholders in Reports
+    Monolog\Processor\PsrLogMessageProcessor:
+        tags: { name: monolog.processor, handler: sentry }
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Migrations/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+            - '../src/**/*Exception.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+when@test:
+    # add services in the test directory to be injected for testing
+    services:
+        App\Tests\IdmServerMock: ~

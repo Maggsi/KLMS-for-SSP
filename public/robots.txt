@@ -1,0 +1,32 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /logout
+Disallow: /register
+Disallow: /reset
+Disallow: /api/
+Disallow: /users
+Disallow: /clans
+Disallow: /cache/
+Disallow: /var/
+Disallow: /vendor/
+Disallow: /config/
+Disallow: /src/
+Disallow: /user
+Disallow: /media/
+Disallow: /seatmap/seat/
+Disallow: /shop/
+Disallow: /beamer
+
+Sitemap: https://www.dot-lan.at/sitemap.xml
+
+# Schlechte Bots blockieren
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /

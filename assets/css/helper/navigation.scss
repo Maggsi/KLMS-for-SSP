@@ -1,0 +1,25 @@
+@use 'variables' as vars;
+@use '../bootstrap-site' as bootstrap;
+
+#main-nav .dropdown-menu {
+    border:none;
+
+    .dropdown-item {
+        padding: 0.3rem 1rem 0.3rem 1.25rem;
+        color: bootstrap.$gray-900;
+        border-left: 3px solid transparent;
+
+        &:hover {
+            border-color:vars.$primary;
+        }
+
+        &.active {
+            border-color:vars.$primary;
+        }
+
+        &:after {
+            float:right;
+            margin-top: calc((1em - bootstrap.$caret-width) / 2);
+        }
+    }
+}

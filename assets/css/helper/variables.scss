@@ -1,0 +1,77 @@
+$main-color: #fdd901;          // SSP hazard yellow
+$body-bg: #0e0e12;            // SSP near-black
+$surface: #131318;
+$surface-container: #19191e;
+$surface-high: #1f1f25;
+$shadow-color:#000;
+$bg-dark:$surface;           // cards use surface, not body-bg
+
+$font-family-base: Gudea, -apple-system, sans-serif;
+$font-size-base:1.25rem;
+$font-weight-base:400;
+$font-weight-bolder:700;
+$line-height-base:1.5;
+
+$light-muted: #71717a;
+
+$navbar-dark-color: #f3eff6;
+$navbar-dark-hover-color: #fdd901;
+$navbar-dark-active-color: #fdd901;
+$navbar-light-brand-color: $light-muted;
+
+$table-color: $light-muted;
+$body-color: $light-muted;
+$hr-border-color: $light-muted;
+
+$card-border-width: 0;
+$table-border-width: 0;
+$card-border-color: $light-muted;
+
+$primary: $main-color;
+
+$theme-colors:  (
+  "error": #dc3545,
+  "light-muted": $light-muted,
+);
+
+$mark-padding: 0;
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px
+);
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 1000px,
+  xl: 1300px
+);
+
+$sizes: (
+  1: 1%
+);
+
+$enable-rounded: false;
+$enable-shadows: false;
+
+$btn-font-size: 1rem;
+$dropdown-font-size: 1rem;
+
+$box-shadow-sm: 0 1.6px 3.6px 0 rgba($shadow-color,.132),0 .3px .9px 0 rgba($shadow-color,.108);
+$box-shadow:    0 3.2px 7.2px 0 rgba($shadow-color,.132),0 .6px 1.8px 0 rgba($shadow-color,.108);
+$box-shadow-lg: 0 6.4px 14.4px 0 rgba($shadow-color,.132),0 1.2px 3.6px 0 rgba($shadow-color,.108);
+
+$card-avatar-size:6rem;
+
+$navbar-nav-link-padding-x:20px;
+$navbar-padding-y:1.1rem; 
+$navbar-padding-x:1.8rem;
+
+$list-group-bg: none;
+$popover-header-color: #000;
+$list-group-border-width: 0;
+

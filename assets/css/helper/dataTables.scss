@@ -1,0 +1,24 @@
+@use '../bootstrap-site' as bootstrap;
+@import url('~datatables.net-bs4/css/dataTables.bootstrap4.css');
+
+div.dataTables_wrapper {
+    div.dataTables_length {
+        padding-top: bootstrap.$spacer;
+        padding-left: bootstrap.$spacer;
+    }
+    
+    div.dataTables_filter {
+        padding-top: bootstrap.$spacer;
+        padding-right: bootstrap.$spacer;
+    }
+    
+    div.dataTables_info {
+        padding-bottom: bootstrap.$spacer;
+        padding-left: bootstrap.$spacer;
+    }
+    
+    div.dataTables_paginate {
+        padding-bottom: bootstrap.$spacer;
+        padding-right: bootstrap.$spacer;
+    }
+}

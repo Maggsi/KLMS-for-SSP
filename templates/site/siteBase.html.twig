@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <header id="header">
+        {% block header %}
+            {% include 'site/components/header.html.twig' %}
+        {% endblock %}
+    </header>
+    <main id="main">
+        {% include 'site/components/flash.html.twig' %}
+        {% block main %}{% endblock %}
+    </main>
+{% endblock %}

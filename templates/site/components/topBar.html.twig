@@ -1,0 +1,22 @@
+<div id="rightTopBar" class="d-flex flex-row">
+	<div>
+		{% if is_granted('ROLE_ADMIN') %}
+			<a class="btn btn-link" href="{{ path('admin_dashboard') }}">
+				<i class="fas fa-cogs"></i>
+				Admin
+			</a>
+		{% endif %}
+	</div>
+	<div>
+		{% if not is_granted('ROLE_ADMIN')  %}
+			{% include 'site/components/topBar/lanStatus.html.twig' %}
+		{% endif %}
+	</div>
+	<div>
+		{% if app.user.user is defined %}
+			{% include 'site/components/topBar/userDropdown.html.twig' %}
+		{% else %}
+			{% include 'site/components/topBar/loginDropdown.html.twig' %}
+		{% endif %}
+	</div>
+</div>

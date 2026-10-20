@@ -1,0 +1,111 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\UserImageRepository;
+use DateTime;
+use DateTimeInterface;
+use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\UuidInterface;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Entity\File as EmbeddedFile;
+use Vich\UploaderBundle\Mapping\Attribute\Uploadable;
+use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
+
+#[ORM\Entity(repositoryClass: UserImageRepository::class)]
+#[ORM\HasLifecycleCallbacks]
+#[Uploadable]
+class UserImage
+{
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private ?UuidInterface $uuid;
+
+    #[ORM\Embedded(class: 'Vich\UploaderBundle\Entity\File')]
+    private ?EmbeddedFile $image;
+
+    #[UploadableField(mapping: 'user', fileNameProperty: 'image.name', size: 'image.size', mimeType: 'image.mimeType', originalName: 'image.originalName', dimensions: 'image.dimensions')]
+    #[Assert\Image(
+        maxSize: '5M',
+        mimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+        mimeTypesMessage: 'Die Datei "{{ filename }}" hat einen ungültigen MIME-Type "{{ mimeType }}". Nur image/png, image/jpeg und image/webp sind erlaubt.',
+        corruptedMessage: 'Die Datei "{{ filename }}" ist kein gültiges Bild oder ist beschädigt.',
+        maxSizeMessage: 'Die Datei "{{ filename }}" ist zu groß ({{ size }} {{ suffix }}). Erlaubt sind maximal {{ limit }} {{ suffix }}.'
+    )]
+    private ?File $imageFile = null;
+
+    #[ORM\Column(type: 'datetime', nullable: false)]
+    private ?DateTimeInterface $lastModified = null;
+
+    public function __construct(?UuidInterface $uuid)
+    {
+        $this->uuid = $uuid;
+        $this->image = new EmbeddedFile();
+    }
+
+    public function getUuid(): ?UuidInterface
+    {
+        return $this->uuid;
+    }
+
+    public function setUuid(?UuidInterface $uuid): self
+    {
+        $this->uuid = $uuid;
+
+        return $this;
+    }
+
+    public function getImage(): ?EmbeddedFile
+    {
+        return $this->image;
+    }
+
+    public function setImage(?EmbeddedFile $image): self
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getLastModified(): ?DateTimeInterface
+    {
+        return $this->lastModified;
+    }
+
+    public function setLastModified(?DateTimeInterface $lastModified): self
+    {
+        $this->lastModified = $lastModified;
+
+        return $this;
+    }
+
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            // It is required that at least one field changes if you are using doctrine
+            // otherwise the event listeners won't be called and the file is lost
+            $this->setLastModified(new DateTime());
+        }
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->imageFile) && empty($this->image->getName()) && empty($this->image->getSize());
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function updateModifiedDatetime(): void
+    {
+        // update the modified time and creation time
+        $this->setLastModified(new DateTime());
+    }
+}

@@ -1,0 +1,20 @@
+{% if settings.get('lan.signup.enabled') and app.user is not empty  %}
+        {% set user = app.user.user %}
+        {% if user is not empty %}
+            {% if user is not registered_user %}
+                <a class="btn btn-link" href="{{ path('shop_checkout') }}"><i class="fa fa-ticket"></i> Ticket kaufen</a>
+            {% else %}
+                {% if not settings.get('lan.seatmap.enabled') %}
+		    <a class="btn btn-link" href="{{ path('shop_checkout') }}"><i class="fa fa-ticket"></i> Bezahlt</a>
+                {% else %}
+                    {% if user is seated_user %}
+                        <a class="btn btn-link" href="{{ url('seatmap') }}"><i class="fas fa-chair"></i> Sitzplatz {{ user | seat }}</a>
+                    {% else %}
+                        <a class="btn btn-link" href="{{ url('seatmap') }}"><i class="fas fa-chair"></i> Sitz auswählen</a>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+{% elseif settings.get('lan.signup.enabled')  %}
+	<a class="btn btn-link" href="{{ path('shop_checkout') }}"><i class="fa fa-ticket"></i> Ticket kaufen</a>
+{% endif %}

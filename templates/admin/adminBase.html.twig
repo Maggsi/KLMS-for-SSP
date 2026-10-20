@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+{% block favicon %}<link rel="shortcut icon" href="{{ asset('favicon_admin.ico') }}" />{% endblock %}
+{% block body %}
+    <div class="container-fluid">
+        <header class="row" style="background-color:#131318;">
+            <div class="logo col-xl-2 col-md-3">
+                <a class="p-3 d-block" style="color:#fdd901;" href="/admin">
+                    <img src="{{ asset("build/images/logo-white.png") }}" height="20px" style="height:20px;" alt="KLMS Logo" title="KRRU LAN Management System"/>
+                </a>
+            </div>
+            <div class="col-xl-10 col-md-9">
+                <nav class="navbar shadow-none" style="background-color:transparent;">
+                    <span class="navbar-brand mb-0 h1">{% block siteheading %}{% endblock %}</span>
+                    <div class="navbar-nav">
+                        <a href="{{ path('index') }}" title="back to site" class="nav-link">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </header>
+        <div id="admin-wrap" class="row">
+            <div class="sidebar col-xl-2 col-md-3 py-3 shadow">
+                {% block sidenav %}
+                    {% include 'admin/components/sidenav.html.twig' %}
+                {% endblock %}
+            </div>
+            <main id="main" class="col-xl-10 col-md-9 pb-5">
+                <div id="topbar" class="row bg-dark text-white mb-3">
+                    {% block topbar %}
+                        {% include 'admin/components/topbar.html.twig' %}
+                    {% endblock %}
+                </div>
+                {% include 'admin/components/flash.html.twig' %}
+                {% block main %}{% endblock %}
+            </main>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('admin') }}
+{% endblock %}

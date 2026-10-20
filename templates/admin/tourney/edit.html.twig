@@ -1,0 +1,125 @@
+{% extends 'admin/adminBase.html.twig' %}
+
+{% block title %}KLMS - Admin{% endblock %}
+{% block siteheading %}<i class="fas fa-trophy"></i> Turniere{% endblock %}
+
+{% block main %}
+    {% set data = form.vars.data %}
+    <div class="clearfix mb-4">
+        {{ form_start(form) }}
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            {{ form_row(form.name) }}
+                            {{ form_row(form.description) }}
+                            {{ form_row(form.mainOrganizer) }}
+                            {{ form_row(form.rulesFile) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5>Modus</h5>
+                            {{ form_row(form.teamsize) }}
+                            {{ form_row(form.maxTeams) }}
+                            {{ form_row(form.mode) }}
+                            {{ form_row(form.hasGroupStage) }}
+                            <div id="group-stage-fields" style="display: {{ form.hasGroupStage.vars.checked ? 'block' : 'none' }};">
+                                {{ form_row(form.groupCount) }}
+                                {{ form_row(form.groupAdvance) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5>Anzeige</h5>
+                            {{ form_row(form.hidden) }}
+                            {{ form_row(form.order) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5>Turnier</h5>
+                            {{ form_row(form.token) }}
+                            {{ form_row(form.show_points) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                {% include 'admin/components/lastModified.html.twig' with { 'data': data } %}
+            </div>
+        </div>
+        <hr>
+        {{ form_rest(form) }}
+        <div class="float-right">
+            <a class="btn btn-secondary" href="{{ path('admin_tourney') }}">Abbrechen</a>
+            <button type="submit" id="content_save" class="btn-primary btn">Speichern</button>
+        </div>
+        {{ form_end(form) }}
+        <div class="float-left">
+            {% if data is not empty %}
+                <form data-toggle="confirmModal" method="post" action="{{ path('admin_tourney_delete', {'id' : data.id}) }}" class="d-inline-block">
+                    <input type="hidden" name="_token" value="{{ csrf_token(csrf_token_delete) }}">
+                    <button class="btn btn-danger" type="submit" value="delete"><i class="fas fa-trash-alt"></i> Löschen</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const groupStageCheckbox = document.getElementById('{{ form.hasGroupStage.vars.id }}');
+            const groupStageFields = document.getElementById('group-stage-fields');
+            const modeRadios = document.querySelectorAll('input[name="{{ form.mode.vars.full_name }}"]');
+            
+            function updateGroupStageVisibility() {
+                if (!groupStageCheckbox || !groupStageFields) return;
+                
+                const isChecked = groupStageCheckbox.checked;
+                const selectedMode = document.querySelector('input[name="{{ form.mode.vars.full_name }}"]:checked');
+                const isRegistrationOnly = selectedMode && selectedMode.value === 'ro';
+                const groupStageWrapper = groupStageCheckbox.closest('.form-group, .mb-3, .form-check');
+                
+                // Hide group stage option for "externes Turnier"
+                if (isRegistrationOnly) {
+                    if (groupStageWrapper) {
+                        groupStageWrapper.style.display = 'none';
+                    }
+                    groupStageFields.style.display = 'none';
+                } else {
+                    if (groupStageWrapper) {
+                        groupStageWrapper.style.display = '';
+                    }
+                    groupStageFields.style.display = isChecked ? 'block' : 'none';
+                }
+            }
+            
+            if (groupStageCheckbox) {
+                groupStageCheckbox.addEventListener('change', updateGroupStageVisibility);
+            }
+            
+            modeRadios.forEach(function(radio) {
+                radio.addEventListener('change', updateGroupStageVisibility);
+            });
+            
+            // Initial state
+            updateGroupStageVisibility();
+        });
+    </script>
+{% endblock %}

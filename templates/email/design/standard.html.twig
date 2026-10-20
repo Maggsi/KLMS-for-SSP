@@ -1,0 +1,10 @@
+{% extends 'email/design/baseDesign.html.twig' %}
+
+{% block main %}
+    <div class="card ssp-card">
+        <div class="card-body">
+            <p class="ssp-kicker">SSP://NEWS</p>
+            {{ body | default('') | raw }}
+        </div>
+    </div>
+{% endblock %}

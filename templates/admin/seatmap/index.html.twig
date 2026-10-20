@@ -1,0 +1,102 @@
+{% extends 'admin/adminBase.html.twig' %}
+
+{% block title %}Sitzplan - KLMS - Admin{% endblock %}
+{% block siteheading %}<i class="fas fa-chair"></i> Sitzplan{% endblock %}
+{% block main %}
+    <div class="row">
+        <div class="col-12">
+            {% set seatmap_bg = settings.get('lan.seatmap.bg_image') %}
+            <div class="card mb-2">
+                <div class="card-body container">
+                    {% if settings.get('lan.seatmap.locked') %}
+                        <div class="alert alert-warning" role="alert">
+                            Der Sitzplan ist aktuell <a href="{{ path('admin_setting_edit', {'key': 'lan.seatmap.locked'}) }}" class="alert-link">gesperrt</a> und kann nur von Admins bearbeitet werden.
+                        </div>
+                    {% endif %}
+                    {% if seatmap_bg is empty %}
+                        <div class="alert alert-warning" role="alert">
+                            Es ist kein Grundriss <a href="{{ path('admin_setting_edit', {'key': 'lan.seatmap.bg_image'}) }}" class="alert-link">hochgeladen</a>.
+                        </div>
+                    {% endif %}
+                    <div>
+                        <button id="toggleEditmode" type="button" class="btn btn-sm btn-primary" data-edit-mode="false">Drag & Drop aktivieren</button>
+                        <a class="btn btn-sm btn-primary" href="{{ path('admin_seatmap_export') }}" download>Sitzplan exportieren (.csv)</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-2">
+                <div class="card-body row justify-content-center">
+                        <div class="col-md-8 col-lg-7 d-flex justify-content-center seatmap-legend">
+                            <div class="d-block text-center flex-fill"> <span class="seat seat-empty"></span><br><span>Frei</span></div>
+                            <div class="d-block text-center flex-fill"> <span class="seat seat-taken"></span><br><span>Reserviert<br>(bezahlt)</span></div>
+                            <div class="d-block text-center flex-fill"> <span class="seat seat-reserved"></span><br><span> Vorgemerkt<br>(unbezahlt)</span></div>
+                            <div class="d-block text-center flex-fill"> <span class="seat seat-locked"></span><br><span> Gesperrt</span></div>
+                            <div class="d-block text-center flex-fill"> <span class="seat seat-clan-reserved"></span><br><span> Clan zugeordnet</span></div>
+                        </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center mt-5">
+                <div class="card">
+                    <div class="seatmap" data-position-url="{{ path('admin_seatmap_seat_pos') }}" data-create-url="{{ path('admin_seatmap_seat_create') }}"
+                        {% if seatmap_bg is not empty %}
+                            >
+                        <img class="seatmap-bg" src="{{ seatmap_bg }}" aria-hidden="true">
+                        {% else %}
+                            style="width: {{ dim['x'] + 150 }}px; height: {{ dim['y'] + 150 }}px">
+                        {% endif %}
+                        <div class="seatmap-wrapper border">
+                            {% for seat in seatmap %}
+                                {% set taken = seat.owner is not empty %}
+                                {% set reserved = seat.owner is not empty and seat.owner is not registered_user %}
+                                {% set clanAssigned = seat.clanReservation is not empty %}
+                                {% set locked = seat.type.value == 'locked' %}
+                                {% set info = seat.type.value == 'info' %}
+                                    <a style="top: {{ seat.posY }}px; left: {{ seat.posX }}px;"
+                                       class="seat
+                                            {% if reserved %}
+                                                seat-taken seat-reserved
+                                            {% elseif taken %}
+                                                seat-taken
+                                            {% elseif locked %}
+                                                seat-locked
+                                            {% elseif info %}
+                                                seat-information
+                                            {% else %}
+                                                seat-empty
+                                            {% endif %}
+                                            {% if clanAssigned %}
+                                                seat-clan-reserved
+                                            {% endif %}
+                                       "
+                                       data-chair-position="{{ seat.chairPosition.value }}" data-toggle="ajaxModal" data-id="{{ seat.id }}"
+                                       data-html="true" title="{{ include('site/seatmap/tooltip.html.twig') }}" href="{{ path('admin_seatmap_seat_edit', {'id' : seat.id}) }}">
+                                        {% if seat.type.value == 'info' %}
+                                            <i class="fas fa-info-circle"></i>
+                                        {% endif %}
+                                    </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('admin_seatmap') }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        :root {
+            --seatmap-seat-size: {{ settings.get('lan.seatmap.styles.seat_size') }}px;
+            --seatmap-seat-tableWidthMultiplier: {{ settings.get('lan.seatmap.styles.seat_tablewidth_multiplier') }};
+            --seatmap-seat-bullet-size: {{ settings.get('lan.seatmap.styles.seat_bullet_size') }}px;
+            --seatmap-seat-border-radius: {{ settings.get('lan.seatmap.styles.seat_border_radius', 10) }}px;
+        }
+    </style>
+    {{ encore_entry_link_tags('admin_seatmap') }}
+{% endblock %}

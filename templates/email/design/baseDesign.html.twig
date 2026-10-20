@@ -1,0 +1,27 @@
+{% extends 'email/emailBase.html.twig' %}
+
+{% block subject %}{{ subject | default('') }}{% endblock %}
+
+{% block body %}
+<div style="background-color:#0e0e12;color:#f3eff6;">
+  <div class="container">
+  <div id="header" class="text-center mb-4">
+    {% block header %}
+      {% include 'email/components/header.html.twig' %}
+    {% endblock %}
+  </div>
+  <div id="main" class="mb-4">
+    {% block main %}
+      {{ body | default('') | raw }}
+    {% endblock %}
+  </div>
+  <div id="footer" class="mb-4">
+    {% block footer %}
+    <div class="bg-darker text-muted">
+      {% include 'email/components/footer.html.twig' %}
+    </div>
+    {% endblock %}
+  </div>
+  </div>
+</div>
+{% endblock %}

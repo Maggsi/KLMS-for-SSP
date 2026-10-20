@@ -1,0 +1,16 @@
+{% extends 'email/design/standard.html.twig' %}
+
+{% block main %}
+  {% set text = settings.get('email.register.text') %}
+  {% set org = settings.get('site.organisation') %}
+  <div class="ssp-card">
+    <p class="ssp-kicker">SSP://REGISTRATION</p>
+    <p><strong>Vielen Dank für deine Registrierung! &#x1F389;</strong><br/>Bitte bestätige deine E-Mail Adresse, dann bist du offiziell Teil der lastLAN Familie.</p>
+    <p>
+      <a class="ssp-cta" style="display:inline-block;background-color:#fdd901;color:#3d4a00;font-family:'Iceland','Lucida Console','Courier New',monospace;text-transform:uppercase;letter-spacing:.28em;font-size:14px;padding:10px 24px;text-decoration:none;" href="{{ url('app_register_confirm', {'user' : user, 'token' : token}) }}">Jetzt bestätigen</a>
+    </p>
+    <p class="ssp-hudline">Oder alternativ <a href="{{ url('app_register_confirm', {'user' : user, 'token' : token}) }}">hier</a> klicken.</p>
+    {{ text | raw }}
+    {% include 'email/components/greetings.html.twig' %}
+  </div>
+{% endblock %}

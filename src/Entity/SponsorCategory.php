@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\SponsorCategoryRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: SponsorCategoryRepository::class)]
+class SponsorCategory
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $name = null;
+
+    #[ORM\Column(type: 'integer')]
+    private ?int $priority = null;
+
+    #[ORM\OneToMany(targetEntity: Sponsor::class, mappedBy: 'category')]
+    private Collection $sponsors;
+
+    public function __construct()
+    {
+        $this->sponsors = new ArrayCollection();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getPriority(): ?int
+    {
+        return $this->priority;
+    }
+
+    public function setPriority(int $priority): self
+    {
+        $this->priority = $priority;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Sponsor>
+     */
+    public function getSponsors(): Collection
+    {
+        $iterator = $this->sponsors->getIterator();
+        $iterator->uasort(function (Sponsor $a, Sponsor $b) {
+            $sortA = $a->getSortOrder();
+            $sortB = $b->getSortOrder();
+            
+            // Wenn beide sortOrder haben, sortiere danach
+            if ($sortA !== null && $sortB !== null) {
+                return $sortA <=> $sortB;
+            }
+            
+            // Wenn nur einer sortOrder hat, kommt dieser zuerst
+            if ($sortA !== null) {
+                return -1;
+            }
+            if ($sortB !== null) {
+                return 1;
+            }
+            
+            // Wenn beide keine sortOrder haben, sortiere alphabetisch nach Name
+            return strcasecmp($a->getName(), $b->getName());
+        });
+        
+        return new ArrayCollection(iterator_to_array($iterator));
+    }
+
+    public function addSponsor(Sponsor $sponsor): self
+    {
+        if (!$this->sponsors->contains($sponsor)) {
+            $this->sponsors[] = $sponsor;
+            $sponsor->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSponsor(Sponsor $sponsor): self
+    {
+        if ($this->sponsors->removeElement($sponsor)) {
+            // set the owning side to null (unless already changed)
+            if ($sponsor->getCategory() === $this) {
+                $sponsor->setCategory(null);
+            }
+        }
+
+        return $this;
+    }
+}

@@ -1,0 +1,294 @@
+@use 'helper/variables' as vars;
+@use 'bootstrap-site' as bootstrap;
+@use 'helper/header';
+@use 'helper/card';
+@use 'helper/hover';
+@use 'helper/common';
+@use 'helper/sponsor';
+
+html,
+body {
+  // min-height (not height): body grows with content so short pages don't
+  // leave a phantom scrollable area below the footer; the flex layout below
+  // still stretches main to pin the footer to the bottom on tall viewports.
+  min-height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  // 100vh, not 100%: body's percentage min-height resolves against html's
+  // auto height and computes to nothing; viewport units actually stretch it.
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+h1 {
+  color: #fdd901;
+  font-family: Gudea, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: clamp(40px, 4.8vw, 68px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  color: #fdd901;
+  font-family: Gudea, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+
+h3 {
+  color: #f3eff6;
+  font-family: Gudea, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.1;
+  margin-bottom: 0.75rem;
+}
+
+h4 {
+  color: #fdd901;
+  font-family: Gudea, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  font-style: normal;
+  line-height: 1.2;
+  letter-spacing: 0em;
+  text-transform: none;
+  margin-bottom: 1.5rem;
+}
+
+main,
+#main {
+  flex: 1 0 auto;
+  // Clear the fixed navbar (75px) with a small breathing gap; was 12.5rem
+  // which left a dead ~170px band above the first card on content pages.
+  margin-top: 6rem;
+}
+
+// Home keeps the old tall band after its full-height hero + chevron shape.
+body.page-startpage main,
+body.page-startpage #main {
+  margin-top: 12.5rem;
+}
+
+#news {
+  margin-top: 2.5rem;
+}
+
+footer,
+#footer {
+  margin-top: 5rem;
+}
+
+.videobox {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1000;
+  overflow: hidden;
+  // Halftone fallback behind the hero video: shows while the video loads
+  // and wherever the video's aspect ratio doesn't cover the box.
+  background: rgba(0, 0, 0, 0.40)
+    url("../../public/media/header_hero_bg.webp") center / cover no-repeat;
+}
+
+.vid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // Readability scrim over the hero art: darker strip under the navbar,
+  // a soft dark vignette behind the centered headline/stats, plus a
+  // uniform base tint. Layers stack multiplicatively over the image.
+  background:
+    radial-gradient(
+      ellipse 60% 45% at 50% 45%,
+      rgba(0, 0, 0, 0.65),
+      transparent 75%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.3) 140px,
+      rgba(0, 0, 0, 0.25) 240px,
+      rgba(0, 0, 0, 0.45) 100%
+    ),
+    rgba(0, 0, 0, 0.5);
+  z-index: -999;
+}
+
+.l-section-shape {
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 15vmin;
+  // Same near-black as the news section below (vars.$body-bg) so the chevron
+  // merges into it; the V on top reads as an arrow against the hero. Carries
+  // the body scanline texture; background-attachment: fixed anchors it to the
+  // viewport (same phase as the body texture), so the lines run continuously.
+  background-color: vars.$body-bg;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.08) 3px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  background-attachment: fixed;
+  // Chevron: exact pentagon of the old inline SVG (replaces it).
+  // SVG (64,8) grid: (64,8)(0,8)(0,0)(32,7.9)(64,0) -> (100% 100%)(0 100%)(0 0)(50% 98.75%)(100% 0).
+  // The top edge is the V (dark section cuts into the band); bottom edge is flat.
+  clip-path: polygon(0 0, 50% 98.75%, 100% 0, 100% 100%, 0 100%);
+}
+
+.l-section-shape.pos_bottom {
+  bottom: -1px;
+}
+
+.zsfeedbkrpanel {
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.fbfpoptitle {
+  color: #fdd901 !important;
+  font-family: Gudea, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  font-style: normal;
+  line-height: 1.2;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.FBWordVerify {
+  background-color: #fff !important;
+}
+
+#advwebForm {
+  background-color: transparent !important;
+}
+
+
+.navbar {
+  font-size: 1rem !important;
+  font-family: Gudea, -apple-system, sans-serif !important;
+  font-weight: 700 !important;
+}
+
+@include bootstrap.media-breakpoint-down(lg) {
+  .navbar {
+    font-size: 1rem !important;
+    font-family: Gudea, -apple-system, sans-serif !important;
+    font-weight: 700 !important;
+    background-color: #000;
+  }
+
+  // Mobile: swap the hero art to the portrait halftone.
+  .videobox {
+    background-image: url("../../public/media/header_dot_bg.webp");
+  }
+}
+
+.username {
+  font-family: Montserrat Alternates !important;
+  font-weight: 700 !important;
+
+}
+
+@keyframes fadeNavbarBg {
+  0% {
+    background-color: transparent;
+  }
+
+  100% {
+    background-color: #000;
+  }
+}
+
+@keyframes fadeNavbarSize {
+  0% {
+    padding: 1.1rem 1.8rem
+  }
+
+  100% {
+    padding: 0.5rem 1.8rem
+  }
+}
+
+.navbar-bg {
+  animation: fadeNavbarBg 0.5s forwards, fadeNavbarSize 0.5s forwards;
+}
+
+// Content pages: the navbar is ALWAYS opaque. The transparent->black fade
+// (fadeNavbarBg) exists for the home hero, but there it only ever covered
+// the hero art; on content pages it let headings slide visibly under a
+// half-transparent bar while scrolling (community feedback: "Neuigkeiten"
+// overlapped the menu items). Keep the size-shrink on scroll, drop the
+// background fade — the bar is solid black from pixel zero.
+body:not(.page-startpage) {
+  #main-nav {
+    background-color: #000;
+
+    &.navbar-bg {
+      animation: fadeNavbarSize 0.5s forwards;
+    }
+  }
+}
+
+
+// Content pages: admin HTML can contain fixed-pixel-width images (e.g. the
+// Lageplan floor plans at width="972"). On narrow screens those cannot
+// text-wrap; scroll them sideways instead of clipping at the card edge.
+.content-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.header-logo {
+  padding-right: 30px;
+  // Admin-set style.logo is full-resolution (hero art); the navbar brand
+  // must stay at navbar scale no matter what image is uploaded.
+  height: 2.5rem;
+  width: auto;
+}
+
+.list-group-hover .list-group-item:hover {
+  color: bootstrap.$list-group-action-hover-color;
+  background-color: bootstrap.$list-group-hover-bg;
+}
+
+.bg-darker {
+  background-color: vars.$bg-dark;
+}
+
+// NOTE: no `color` override here — modals inherit the body's light text
+// (#f3eff6) so form labels/titles stay readable on the dark ssp-theme surface.
+// (A previous `color: #000` made the "Setting …" title word and the "Löschen"
+// checkbox label black-on-dark and illegible — see issue #4.)
+
+.text-disabled {
+  color: bootstrap.$gray-300;
+}
+
+input.datetimepicker[readonly]:not([disabled]) {
+  background: bootstrap.$input-bg;
+}
+
+input.datepicker[readonly]:not([disabled]) {
+  background: bootstrap.$input-bg;
+}

@@ -1,0 +1,16 @@
+{% from 'site/tourney/show.html.twig' import teamname, podium_list %}
+
+{% extends 'site/tourney/_card.body.html.twig' %}
+
+{% block mainColTop %}
+{% if podium | default([]) is not empty %}
+    <div class="col-6 offset-3">
+        <div class="card mb-3">
+            <div class="card-header">
+                <strong>Ergebnis</strong>
+            </div>
+            {{ podium_list(podium) }}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

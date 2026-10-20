@@ -1,0 +1,21 @@
+services:
+  database:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_USER: 'krru'
+      POSTGRES_PASSWORD: 'krru'
+      POSTGRES_DB: 'klms'
+    ports: [ "5432:5432" ]
+    volumes:
+      - database:/var/lib/postgresql/data:rw
+  
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+    labels:
+      com.symfony.server.service-prefix: 'MailCatcher'
+
+volumes:
+  database:

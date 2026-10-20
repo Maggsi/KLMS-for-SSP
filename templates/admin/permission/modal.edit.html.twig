@@ -1,0 +1,14 @@
+{% embed "modules/modals/form.html.twig"
+    with {
+        'id': 'editModal',
+        'title' : '<span class="userName">Admin</span> bearbeiten',
+        'attr' : {'data-remote-target' : path('admin_permission')},
+        'form' : form_edit
+    }
+%}
+    {% block modalForm %}
+        <div class="form-group">
+            {{ form_row(form_edit.perm) }}
+        </div>
+    {% endblock %}
+{% endembed %}

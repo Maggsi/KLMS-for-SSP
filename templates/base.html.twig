@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+	<head>
+		{% if app.request.pathInfo == '/content/support' %}
+			<script src="https://desk.zoho.eu/portal/api/feedbackwidget/189051000000274310?orgId=20103009939&displayType=embeded"></script>
+		{% endif %}
+		{% if app.request.pathInfo starts with '/shop/payment' %}
+			<script src="https://gateway.sumup.com/gateway/ecom/card/v2/sdk.js"></script>
+		{% endif %}
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta http-equiv="cache-control" content="no-cache"/>
+		{% block meta_description %}
+			{% set resolvedMetaDescription = metaDescription|default(settings.get('site.about')) %}
+			<meta name="description" content="{{ resolvedMetaDescription|striptags|trim }}">
+		{% endblock %}
+		{% block meta_keywords %}
+			{% set resolvedMetaKeywords = metaKeywords|default(settings.get('site.keywords')) %}
+			<meta name="keywords" content="{{ resolvedMetaKeywords|striptags|trim }}">
+		{% endblock %}
+		{% block meta_robots %}
+			<meta name="robots" content="{{ metaRobots|default('index,follow') }}">
+		{% endblock %}
+		<link rel="canonical" href="{{ canonicalUrl|default(app.request.uri) }}">
+		{% block meta_social %}
+			{% set socialTitle = metaTitle|default(settings.get('site.title')) %}
+			{% set socialDescription = metaDescription|default(settings.get('site.about')) %}
+			{% set socialUrl = canonicalUrl|default(app.request.uri) %}
+			<meta property="og:title" content="{{ socialTitle|striptags|trim }}">
+			<meta property="og:description" content="{{ socialDescription|striptags|trim }}">
+			<meta property="og:type" content="{{ metaType|default('website') }}">
+			<meta property="og:url" content="{{ socialUrl }}">
+			{% if metaImage is defined and metaImage %}
+				<meta property="og:image" content="{{ metaImage }}">
+				<meta name="twitter:card" content="summary_large_image">
+				<meta name="twitter:image" content="{{ metaImage }}">
+			{% else %}
+				<meta name="twitter:card" content="summary">
+			{% endif %}
+			<meta name="twitter:title" content="{{ socialTitle|striptags|trim }}">
+			<meta name="twitter:description" content="{{ socialDescription|striptags|trim }}">
+		{% endblock %}
+		{% block favicon %}<link rel="icon" href="{{ asset('favicon.ico') }}"/>{% endblock %}
+		<title>
+			{% block title %}
+				{{ settings.get('site.title') }}
+			{% endblock %}
+		</title>
+		{% block stylesheets %}
+			{{ encore_entry_link_tags('app') }}
+		{% endblock %}
+	</head>
+	<body{% if app.request.pathInfo == '/' %} class="page-startpage"{% endif %}>
+		{% if (settings.get('site.prepage.show') == "1" and not (app.request.pathInfo starts with '/admin' or app.request.pathInfo == '/login' or app.request.pathInfo == '/reset')) and not is_granted('ROLE_ADMIN') %}
+			<div class="container mt-4">
+				{{ settings.get('site.prepage.text')|raw }}
+			</div>
+		{% else %}
+			{% block body %}{% endblock %}
+		{% endif %}
+		<footer id="footer">
+			{% block sponsor %}
+				<div class="">
+					{% include 'site/components/sponsoring.html.twig' %}
+				</div>
+			{% endblock %}
+			{% block footer %}
+				<div class="">
+					{% include 'site/components/footer.html.twig' %}
+				</div>
+			{% endblock %}
+			{% block footbar %}
+				<div class="">
+					{% include 'site/components/footBar.html.twig' %}
+				</div>
+			{% endblock %}
+		</footer>
+		{% if not (app.request.pathInfo starts with '/admin')  %}
+			<div id="poll-widget-root"
+				 data-fetch-url="{{ path('poll_current') }}"
+			 data-vote-url="{{ path('poll_vote') }}"
+			 data-csrf-token-url="{{ path('poll_csrf_token') }}"></div>
+		{% endif %}
+		{% block javascripts %}
+				{{ encore_entry_script_tags('app') }}
+		{% endblock %}
+	</body>
+</html>

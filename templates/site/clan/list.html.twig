@@ -1,0 +1,67 @@
+{% extends 'site/siteBase.html.twig' %}
+
+{% block title %}{{ settings.get('site.title') }} - Clans{% endblock %}
+
+{% block main %}
+    <div class="container block-search" data-limit="{{ limit }}">
+        <h1 class='text-center'>Clans</h1>
+        <div class="card mb-4">
+                <div class="row">
+                    <div class="col">
+                        <form action="{{ path('clan') }}" method="get">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                </div>
+                                <input type="text" name="q" class="form-control block-search-input" placeholder="Clan suchen" value="{{ search }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-primary ml-2" type="submit" id="button-addon2">Suchen</button>
+                                    <a role="button" class="btn btn-primary ml-2 d-flex align-items-center" href="{{ path('clan_create') }}">
+                                        <i class="fas fa-plus me-2"></i>&nbsp;Clan erstellen
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+        </div>
+
+        <div class="row block-search-results">
+            {% if clans is empty %}
+                <div class="col mb-3">
+                    <div class="alert alert-info" role="alert">
+                        <h4 class="alert-heading">Kein Ergebnis gefunden!</h4>
+                        <p>Es konnte kein Clan mit dem Namen <strong>{{ search }}</strong> gefunden werden!</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% for clan in clans %}
+                <div class="col-md-6 mb-3">
+                    {% include 'site/components/cards/cardClanPreview.html.twig' with {'clan': clan} %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if clans is not empty %}
+            <nav class="">
+                <ul class="pagination mt-3 justify-content-center block-search-pagination">
+                    <li class="page-item page-item-back {% if page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{  path('clan', {"page" : page-1, "q" : search}) }}" tabindex="-1"><i class="fas fa-arrow-left"></i> Zurück</a>
+                    </li>
+                    {% set pageCnt = (total / limit)|round(0, 'ceil') %}
+                    {% for i in 1..pageCnt %}
+                        <li class="page-item {% if page == i %}active{% endif %}" data-page="{{ i }}">
+                            <a class="page-link" href="{{  path('clan', {"page" : i, "q" : search}) }}">{{ i }}</a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item page-item-next {% if page == pageCnt %}disabled{% endif %}">
+                        <a class="page-link" href="{{  path('clan', {"page" : page+1, "q" : search}) }}">Weiter <i class="fas fa-arrow-right"></i></a>
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+{% endblock %}

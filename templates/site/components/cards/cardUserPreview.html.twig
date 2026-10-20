@@ -1,0 +1,16 @@
+<div class=" h-100 container">
+    <div class="row no-gutters h-100">
+        <div class="col">       
+                    {% block userName %}
+                        <a href="{{ path('user_show', {'uuid' : user.uuid}) }}">{{ user.nickname }}</a>
+                    {% endblock %}
+                </h4>
+        </div>
+	<div class="col">
+			<span>{% if user is registered_user %}Ticket vorhanden{% else %}kein Ticket{% endif %}</span>	
+	</div>
+	<div class="col">
+			<span>{% if user is seated_user %}Sitzplatz: {{ user | seat }}{% else %}kein Sitzplatz{% endif %}</span>                
+	</div>
+    </div>
+</div>

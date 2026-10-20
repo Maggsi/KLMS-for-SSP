@@ -1,0 +1,85 @@
+{% macro tree_button(tourney) %}
+    {% if tourney.hasTree %}
+        <a class="btn btn-primary btn-sm btn-block" href="{{ path('tourney_show', {'id': tourney.id }) }}"><i class="fa-solid fa-sitemap"></i> Turnierbaum</a>
+    {% endif %}
+{% endmacro %}
+
+<div class="card-body">
+    <div class="container">
+        <div class="row">
+            {% block blockButtonBar %}
+                <div class="col-md-9">
+
+                </div>
+                <div class="col-md-3">
+
+                </div>
+            {% endblock %}
+        </div>
+        <div class="row">
+            <div class="col-md-9">
+                {% block blockButtonBarMain %}
+                {% endblock %}
+                <div class="row">
+                    {% block mainColTop %}
+                    {% endblock %}
+                    {% block tourneyDesc %}
+                        {% if tourney.description is not empty %}
+                            <div class="col-12">
+                                <b>Beschreibung</b><br>
+                                <p>
+                                    {{ tourney.description | raw }}
+                                </p>
+                            </div>
+                        {% endif %}
+                        {% set mainOrganizer = tourney.mainOrganizer | user %}
+                        {% if mainOrganizer is not null %}
+                            <div class="col-12">
+                                <b>Turnierorga</b><br>
+                                {{ tourney.mainOrganizer | username }}
+                                {% set organizerSeat = mainOrganizer | seat %}
+                                {% if organizerSeat is not empty %}
+                                    <span class="badge badge-secondary ml-3"><i class="fa-solid fa-chair"></i> {{ organizerSeat }}</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        {% if tourney.rulesFileName is not empty %}
+                            <div class="col-12 mt-3">
+                                <a href="{{ vich_uploader_asset(tourney, 'rulesFile') }}" target="_blank"><i class="fa-solid fa-file-pdf"></i> Regelwerk</a>
+                            </div>
+                        {% endif %}
+                    {% endblock %}
+                </div>
+            </div>
+            <div class="col-md-3">
+                {% block blockButtonBarRight %}
+                    {% if tourney.hasTree %}
+                        <div class="text-right mb-3">
+                            {{ _self.tree_button(tourney) }}
+                        </div>
+                    {% endif %}
+                {% endblock %}
+                {% block blockRight %}
+                    <dl>
+                        <dt>Status:</dt>
+                        <dd>{{ tourney.status.message }}</dd>
+                        <dt>Modus:</dt>
+                        <dd>
+                            {% if tourney.mode.canHaveGames %}{{ tourney.teamsize }}v{{ tourney.teamsize }} {% endif %}
+                            {{ tourney.mode.message }}
+                            {% if tourney.mode.requiresGroupStage and tourney.groupCount > 0 and tourney.groupAdvance > 0 %}
+                                <br><small class="text-muted">{{ tourney.groupCount }} Gruppen, Top {{ tourney.groupAdvance }} kommen weiter</small>
+                            {% endif %}
+                        </dd>
+                        <dt>Teams:</dt>
+                        <dd>
+                            {{ tourney.teams.count }} / {{ tourney.maxTeams | default("&infin;") | raw }}
+                        </dd>
+                    </dl>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+    {% block containerBottom %}
+    {% endblock %}
+</div>

@@ -1,0 +1,17 @@
+{% extends 'email/design/standard.html.twig' %}
+
+{% block main %}
+  {% set text = settings.get('email.reset.text') %}
+  {% set org = settings.get('site.organisation') %}
+  <div class="ssp-card">
+    {% if text is empty %}
+      <p class="ssp-kicker">SSP://RESET</p>
+      <h1>Passwort zurücksetzen</h1>
+    {% endif %}
+    <p>
+      <a class="ssp-cta" style="display:inline-block;background-color:#fdd901;color:#3d4a00;font-family:'Iceland','Lucida Console','Courier New',monospace;text-transform:uppercase;letter-spacing:.28em;font-size:14px;padding:10px 24px;text-decoration:none;" href="{{ url('reset_pw', {'user' : user, 'token' : token}) }}">Passwort zurücksetzen</a>
+    </p>
+    <p>Solltest du das nicht gewesen sein, kannst du diese Nachricht ignorieren.</p>
+    {% include 'email/components/greetings.html.twig' %}
+  </div>
+{% endblock %}

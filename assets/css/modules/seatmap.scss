@@ -1,0 +1,138 @@
+@use '../helper/variables' as vars;
+
+$seat-point-distance: 11px;
+$seat-mark-border-width: 2px;
+$seat-orientations: n, e, s, w;
+
+@mixin seat($color) {
+  background-color: $color;
+
+  &:before {
+    background-color: $color;
+    border-radius: 50%;
+  }
+}
+
+.seat-border {
+  border-style: solid;
+  border-width: $seat-mark-border-width;
+}
+
+@mixin seat-border($color) {
+  @extend .seat-border;
+  border-color: $color;
+}
+
+@mixin char-seat-point($orientation, $distance) {
+  @if $orientation == n  {
+    top: -$distance;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  } @else if $orientation == e {
+    right: -$distance;
+    top: 50%;
+    transform: translate(50%, -50%);
+  } @else if $orientation == s {
+    bottom: -$distance;
+    left: 50%;
+    transform: translate(-50%, 50%);
+  } @else if $orientation == w {
+    left: -$distance;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.seatmap-legend, .seatmap-wrapper {
+  .seat-empty {
+    @include seat(green)
+  }
+
+  .seat-taken {
+    @include seat(darkred)
+  }
+
+  .seat-reserved {
+    @include seat(#0080C0)
+  }
+
+  .seat-own {
+    @include seat(vars.$primary)
+  }
+
+  .seat-locked {
+    @include seat(gray)
+  }
+
+  .seat-clan-reserved {
+    @include seat-border(#e0a800);
+  }
+}
+
+.seatmap-legend {
+  .seat {
+    height: 33px;
+    width: 33px;
+    border-radius: 30%;
+    display: inline-block;
+  }
+}
+
+.seatmap-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: scale(1);
+  transform-origin: left top;
+  
+  .seat {
+    position: absolute;
+    border-radius: var(--seatmap-seat-border-radius, 8px);
+    cursor: pointer;
+
+    &[data-chair-position="n"], &[data-chair-position="s"] {
+      width: calc(var(--seatmap-seat-size, 27px) * var(--seatmap-seat-tableWidthMultiplier, 1));
+      height: var(--seatmap-seat-size, 27px);
+    }
+
+    &[data-chair-position="w"], &[data-chair-position="e"] {
+      width: var(--seatmap-seat-size, 27px);
+      height: calc(var(--seatmap-seat-size, 27px) * var(--seatmap-seat-tableWidthMultiplier, 1));
+    }
+  
+    &::before {
+      content: '';
+      position: absolute;
+      width: var(--seatmap-seat-bullet-size, 6px);
+      height: var(--seatmap-seat-bullet-size, 6px);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    @each $orientation in $seat-orientations {
+      &[data-chair-position="#{$orientation}"]::before {
+        @include char-seat-point($orientation, $seat-point-distance);
+      }
+
+      &[data-chair-position="#{$orientation}"].seat-border::before {
+        @include char-seat-point($orientation, $seat-point-distance+$seat-mark-border-width);
+      }
+    }
+  }
+
+  .seat-information {
+    cursor: default;
+    background-color: transparent;
+    text-align: center;
+    line-height: 1.2;
+
+    .fa-info-circle {
+      color: var(--info);
+      font-size: 1rem;
+      vertical-align: middle;
+      margin-top: 0.1rem;
+    }
+  }
+}
