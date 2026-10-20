@@ -79,6 +79,15 @@ body {
   );
 }
 
+// --- Text ---
+// Bootstrap default $text-muted (#6c757d) sits at ~4.0:1 on our card surface
+// — below WCAG AA. Raise to the AA-passing gray used by the rest of the theme
+// (6.7:1 on #19191e). Covers news card subtitles, form help text, admin muted
+// labels.
+.text-muted {
+  color: #a0a0a8 !important;
+}
+
 // --- Buttons ---
 
 .btn-primary {
@@ -86,7 +95,7 @@ body {
   border-color: #fdd901;
   color: #3d4a00;
   font-family: 'Iceland', monospace;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   border-radius: 0;
@@ -116,7 +125,7 @@ body {
   border: 2px solid #fdd901;
   color: #fdd901;
   font-family: 'Iceland', monospace;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   border-radius: 0;
@@ -288,7 +297,7 @@ body {
     border: 2px solid #fdd901;
     color: #fdd901;
     font-family: 'Iceland', monospace;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     padding: 0.25rem 0.75rem;
@@ -369,7 +378,7 @@ body {
 .sidebar .nav-link {
   color: #f3eff6;
   font-family: 'Iceland', monospace;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 

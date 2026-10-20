@@ -7,7 +7,7 @@
             {% endif %}
             <div class="d-flex justify-content-center p-2">
                 <a {% if s.url is not empty %} href="{{ s.url }}" target="_blank" {% endif %}>
-                <img style="max-width: 250px; max-height:200px; " src="{{ vich_uploader_asset(s, 'logoFile') | imagine_filter('sponsor_logo') }}">
+                <img class="sponsor-banner-logo" src="{{ vich_uploader_asset(s, 'logoFile') | imagine_filter('sponsor_logo') }}" alt="{{ s.name }}">
                 </a>
             </div>
             <div class="text-center">

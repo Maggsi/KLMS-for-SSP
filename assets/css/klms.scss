@@ -4,11 +4,23 @@
 @use 'helper/card';
 @use 'helper/hover';
 @use 'helper/common';
+@use 'helper/sponsor';
 
 html,
 body {
-  height: 100%;
+  // min-height (not height): body grows with content so short pages don't
+  // leave a phantom scrollable area below the footer; the flex layout below
+  // still stretches main to pin the footer to the bottom on tall viewports.
+  min-height: 100%;
+}
 
+body {
+  display: flex;
+  flex-direction: column;
+  // 100vh, not 100%: body's percentage min-height resolves against html's
+  // auto height and computes to nothing; viewport units actually stretch it.
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 h1 {
@@ -16,7 +28,7 @@ h1 {
   font-family: Gudea, -apple-system, sans-serif;
   font-weight: 700;
   font-size: clamp(40px, 4.8vw, 68px);
-  line-height: 0.88;
+  line-height: 1.05;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   margin-bottom: 1.5rem;
@@ -27,7 +39,7 @@ h2 {
   font-family: Gudea, -apple-system, sans-serif;
   font-weight: 700;
   font-size: 40px;
-  line-height: 0.95;
+  line-height: 1.1;
   margin-bottom: 1rem;
 }
 
@@ -56,6 +68,14 @@ h4 {
 main,
 #main {
   flex: 1 0 auto;
+  // Clear the fixed navbar (75px) with a small breathing gap; was 12.5rem
+  // which left a dead ~170px band above the first card on content pages.
+  margin-top: 6rem;
+}
+
+// Home keeps the old tall band after its full-height hero + chevron shape.
+body.page-startpage main,
+body.page-startpage #main {
   margin-top: 12.5rem;
 }
 
@@ -177,16 +197,9 @@ footer,
     background-color: #000;
   }
 
-  // Mobile: swap the hero art to the portrait halftone and drop the video
-  // (the image used to be painted over a hidden .videobox via .vid-overlay;
-  // the overlay is now reserved for the readability scrim, so the art moves
-  // to .videobox — which is no longer display:none on mobile).
+  // Mobile: swap the hero art to the portrait halftone.
   .videobox {
     background-image: url("../../public/media/header_dot_bg.webp");
-  }
-
-  .videobox video {
-    display: none;
   }
 }
 
@@ -218,6 +231,22 @@ footer,
 
 .navbar-bg {
   animation: fadeNavbarBg 0.5s forwards, fadeNavbarSize 0.5s forwards;
+}
+
+// Content pages: the navbar is ALWAYS opaque. The transparent->black fade
+// (fadeNavbarBg) exists for the home hero, but there it only ever covered
+// the hero art; on content pages it let headings slide visibly under a
+// half-transparent bar while scrolling (community feedback: "Neuigkeiten"
+// overlapped the menu items). Keep the size-shrink on scroll, drop the
+// background fade — the bar is solid black from pixel zero.
+body:not(.page-startpage) {
+  #main-nav {
+    background-color: #000;
+
+    &.navbar-bg {
+      animation: fadeNavbarSize 0.5s forwards;
+    }
+  }
 }
 
 

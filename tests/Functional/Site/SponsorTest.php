@@ -26,6 +26,9 @@ class SponsorTest extends DatabaseWebTestCase
         // only one has a link set
         $this->assertCount(2, $crawler->filter('.sponsor img'));
         $this->assertCount(1, $crawler->filter('.sponsor a > img'));
+        // fixed-size logo boxes (no inline widths) so rows stay even
+        $this->assertCount(2, $crawler->filter('.sponsor img.sponsor-logo'));
+        $this->assertCount(0, $crawler->filter('.sponsor img[style]'));
         $a = $crawler->filter('.sponsor a');
         $this->assertCount(1, $a);
         $this->assertEquals('https://www.example.com', $a->attr('href'));
@@ -73,7 +76,7 @@ class SponsorTest extends DatabaseWebTestCase
 
         $this->assertCount(3, $crawler->filter('.sponsor-category'));
         $this->assertCount(2, $crawler->filter('.sponsor'));
-        $this->assertSelectorExists('.sponsor-category h3');
+        $this->assertSelectorExists('.sponsor-category h2');
     }
 
     public function testSponsorNoCategory()
