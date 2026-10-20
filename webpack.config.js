@@ -1,5 +1,7 @@
 const Encore = require('@symfony/webpack-encore');
 const Dotenv = require('dotenv-webpack');
+const fs = require('fs');
+const path = require('path');
 
 // Manually configure the runtime environment if not already configured yet by the "encore" command.
 // It's useful when you use tools that rely on webpack.config.js file.
@@ -113,6 +115,13 @@ Encore
     // enable WebPack5 Build Caching (EXPERIMENTAL)
     //.enableBuildCache()
 
+    // Copy asset directories. `context` MUST be set explicitly:
+    // when node_modules/ is a symlink (e.g. agent worktrees reuse the main
+    // checkout's deps), webpack's context resolves to the REAL project dir,
+    // `from` becomes relative-with-../.. to it, and copy-webpack-plugin's
+    // `[path]` sanitizes each `../` to `_` -> TinyMCE skins land in
+    // build/skins/_/_/.../node_modules/... and the admin rich editor dies
+    // with 404s on /build/skins/ui/oxide/skin.min.css (v0.1.3 incident).
     .copyFiles({
         from: './assets/images',
         to: 'images/[path][name].[hash:8].[ext]',
@@ -120,9 +129,16 @@ Encore
     })
 
     //copy TineMCE Skin Files
+    //`context` MUST be the REALPATH of the skins dir: when node_modules/ is a
+    //symlink (agent worktrees reuse the main checkout's deps), webpack's
+    //require.context hands the loader symlink-resolved (real) file paths while
+    //the default context stays the symlinked dir -> every `../` in `[path]`
+    //gets sanitized to `_` and skins land in build/skins/_/_/... with the admin
+    //rich editor 404ing on /build/skins/ui/oxide/skin.min.css (v0.1.3 incident).
     .copyFiles({
         from: './node_modules/tinymce/skins',
-        to: 'skins/[path][name].[ext]'
+        to: 'skins/[path][name].[ext]',
+        context: fs.realpathSync(path.resolve(__dirname, 'node_modules/tinymce/skins'))
     })
     //Load .env.local Variables into JS
     .addPlugin(new Dotenv({
