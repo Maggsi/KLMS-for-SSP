@@ -17,6 +17,10 @@ body {
 body {
   display: flex;
   flex-direction: column;
+  // 100vh, not 100%: body's percentage min-height resolves against html's
+  // auto height and computes to nothing; viewport units actually stretch it.
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 h1 {
