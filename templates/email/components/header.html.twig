@@ -1,16 +1,21 @@
 {# TODO embedd logo to make it independent of changes #}
 <div class="head-wrap"
+     style="background-color:#0e0e12;"
      {% if settings.get('style.bg_image') is not empty %}
-     style="background-image: url({{ absolute_url(settings.get('style.bg_image')) }})"
+     style="background-color:#0e0e12; background-image: url({{ absolute_url(settings.get('style.bg_image')) }})"
      {% endif %}
 >
     <div class="head-content container">
+        <div style="padding-top:1.5rem;padding-bottom:1.5rem;">
         <a href="{{ url('news') }}">
             {% if settings.get('style.logo_email') is not empty %}
-                <img class="w-100 logo {% if settings.get('style.logo_full_height') %}logo-full-height{% endif %}" src="{{ absolute_url(settings.get('style.logo_email')) }}" alt="Logo"/>
+                <img style="max-height:215px;max-width:100%;width:auto;height:auto;" src="{{ absolute_url(settings.get('style.logo_email') | imagine_filter('mail_logo')) }}" alt="Logo"/>
             {% elseif settings.get('style.logo') is not empty %}
-                <img class="logo {% if settings.get('style.logo_full_height') %}logo-full-height{% endif %}" src="{{ absolute_url(settings.get('style.logo')) }}" alt="Logo"/>
+                <img style="max-height:215px;max-width:100%;width:auto;height:auto;" src="{{ absolute_url(settings.get('style.logo') | imagine_filter('mail_logo')) }}" alt="Logo"/>
+            {% else %}
+                <img style="max-height:215px;max-width:100%;width:auto;height:auto;" src="{{ absolute_url(asset('build/images/lastlan-logo-cropped.png') | imagine_filter('mail_logo')) }}" alt="lastLAN"/>
             {% endif %}
         </a>
+        </div>
     </div>
 </div>

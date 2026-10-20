@@ -1,6 +1,23 @@
-$main-color: #df1238;
-$body-bg:#fff;
-$shadow-color:#000;
+// SSP brand tokens — see ~/ssp-brand/DESIGN.md (sissistatepunks.com design system)
+$main-color: #fdd901;          // hazard yellow — sole interaction driver
+$ssp-bg: #0e0e12;              // near-black void
+$ssp-surface: #131318;
+$ssp-surface-container: #19191e;
+$ssp-surface-high: #1f1f25;
+$ssp-text: #f3eff6;            // cool white
+$ssp-muted: #71717a;
+$ssp-on-primary: #3d4a00;      // olive-ink on yellow
+$ssp-secondary: #ff6e81;       // coral accent only
+$ssp-border: rgba(72, 71, 76, .35);
+$ssp-border-accent: rgba(253, 217, 1, .28);
+$ssp-glow: rgba(253, 217, 1, .45);
+
+$font-gudea: 'Gudea', 'Segoe UI', Helvetica, Arial, sans-serif;   // body + display
+$font-mono: 'Iceland', 'Lucida Console', 'Courier New', monospace; // machine voice
+
+$body-bg: $ssp-bg;
+$body-color: $ssp-text;
+$shadow-color: #000;
 
 $light-muted:rgba(#fff,.90);
 
@@ -8,6 +25,8 @@ $navbar-dark-color: $light-muted;
 $navbar-dark-hover-color: #fff;
 
 $primary: $main-color;
+$secondary: $ssp-secondary;
+$link-color: $main-color;
 
 $theme-colors:  (
   "error": #dc3545,
@@ -35,7 +54,7 @@ $sizes: (
   1: 1%
 );
 
-$enable-rounded: false;
+$enable-rounded: false;   // brand: chamfer or square, never pill
 $enable-shadows: true;
 
 $box-shadow-sm: 0 1.6px 3.6px 0 rgba($shadow-color,.132),0 .3px .9px 0 rgba($shadow-color,.108);
