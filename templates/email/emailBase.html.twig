@@ -4,7 +4,24 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width">
+    {# Declare dark-awareness: stops Gmail Android/Chromium forced auto-darkening
+       color rewrites (google Chrome auto-dark opt-out + email-dev consensus). #}
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <title>{% block subject %}{% endblock %}</title>
+    <style>
+        /* Gmail web/app dark surfaces inject [data-ogsb]/[data-ogsc] rewrites that
+           can lift our olive-on-yellow CTA label to unreadable pale olive.
+           -webkit-text-fill-color wins over color at paint time and is not part
+           of Gmail's rewrite dictionary, so the label stays dark. */
+        .ssp-cta,
+        [data-ogsc] .ssp-cta,
+        [data-ogsb] .ssp-cta,
+        u + .body .ssp-cta {
+            -webkit-text-fill-color: #3d4a00 !important;
+            color: #3d4a00 !important;
+        }
+    </style>
 </head>
 <body>
 <div class="body">

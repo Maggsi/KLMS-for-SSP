@@ -4,18 +4,10 @@
 @use '../helper/common';
 
 
-html, body {
-    height: 100%;
-}
-
-body {
-    display: flex;
-    flex-direction: column;
-}
-
-main, #main {
-    flex: 1 0 auto;
-}
+// NOTE: no html/body height:100% / body flex sticky-footer pattern here —
+// that is a web-layout idiom; inside Gmail Android's tall WebView it stretches
+// the mail and pins the footer to the viewport bottom (content appears
+// off-center). Email layout is plain document flow; see SSP reset below.
 
 footer, #footer {
     box-shadow: emailVars.$box-shadow;
@@ -54,13 +46,25 @@ input.datepicker[readonly]:not([disabled]) {
 // clip-path/glow degrade to clean rectangles in Outlook.
 // ---------------------------------------------------------------------------
 
+// Gmail-safety reset: no web-layout patterns in email. The app bundle's
+// html/body height:100% + body flex sticky footer stretched the mail inside
+// Gmail Android's tall WebView (footer pinned to viewport bottom, content
+// off-center). Email layout must be plain document flow.
 html, body {
+    height: auto !important;
     background-color: emailVars.$ssp-bg;
 }
 
 body {
+    display: block !important;
+    margin: 0;
+    padding: 0;
     color: emailVars.$ssp-text;
     font-family: emailVars.$font-gudea;
+}
+
+main, #main {
+    flex: none;
 }
 
 a {
