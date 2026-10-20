@@ -10,16 +10,18 @@
     <meta name="supported-color-schemes" content="light dark">
     <title>{% block subject %}{% endblock %}</title>
     <style>
-        /* Gmail web/app dark surfaces inject [data-ogsb]/[data-ogsc] rewrites that
-           can lift our olive-on-yellow CTA label to unreadable pale olive.
-           -webkit-text-fill-color wins over color at paint time and is not part
-           of Gmail's rewrite dictionary, so the label stays dark. */
+        /* Gmail dark-mode engines (iOS color dictionary, Android auto-darkening)
+           lift dark text sitting on yellow. The CTA is inverted (dark surface +
+           yellow label — the only variant readable on device), so guards just
+           re-assert both colors through every known Gmail wrapper. */
         .ssp-cta,
         [data-ogsc] .ssp-cta,
         [data-ogsb] .ssp-cta,
         u + .body .ssp-cta {
-            -webkit-text-fill-color: #3d4a00 !important;
-            color: #3d4a00 !important;
+            background-color: #1f1f25 !important;
+            color: #fdd901 !important;
+            -webkit-text-fill-color: #fdd901 !important;
+            border: 2px solid #fdd901 !important;
         }
     </style>
 </head>
