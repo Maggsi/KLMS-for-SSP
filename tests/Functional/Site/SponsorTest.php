@@ -76,7 +76,7 @@ class SponsorTest extends DatabaseWebTestCase
 
         $this->assertCount(3, $crawler->filter('.sponsor-category'));
         $this->assertCount(2, $crawler->filter('.sponsor'));
-        $this->assertSelectorExists('.sponsor-category h3');
+        $this->assertSelectorExists('.sponsor-category h2');
     }
 
     public function testSponsorNoCategory()

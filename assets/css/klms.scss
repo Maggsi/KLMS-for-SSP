@@ -233,6 +233,22 @@ footer,
   animation: fadeNavbarBg 0.5s forwards, fadeNavbarSize 0.5s forwards;
 }
 
+// Content pages: the navbar is ALWAYS opaque. The transparent->black fade
+// (fadeNavbarBg) exists for the home hero, but there it only ever covered
+// the hero art; on content pages it let headings slide visibly under a
+// half-transparent bar while scrolling (community feedback: "Neuigkeiten"
+// overlapped the menu items). Keep the size-shrink on scroll, drop the
+// background fade — the bar is solid black from pixel zero.
+body:not(.page-startpage) {
+  #main-nav {
+    background-color: #000;
+
+    &.navbar-bg {
+      animation: fadeNavbarSize 0.5s forwards;
+    }
+  }
+}
+
 
 // Content pages: admin HTML can contain fixed-pixel-width images (e.g. the
 // Lageplan floor plans at width="972"). On narrow screens those cannot
