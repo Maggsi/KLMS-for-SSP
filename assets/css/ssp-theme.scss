@@ -328,6 +328,81 @@ body {
   }
 }
 
+// Input-group icon prepends/appendends (profile, login, admin forms all use
+// them via klms_bootstrap_4_layout): Bootstrap default is light-gray #e9ecef.
+.input-group-text {
+  background-color: vars.$surface-container;
+  border-color: #48474c;
+  color: vars.$light-muted;
+}
+
+// Symfony's bootstrap_4 form theme renders FileType as
+// .custom-file-input + .custom-file-label (Bootstrap default: white field,
+// gray "Browse" button).
+.custom-file-label {
+  background-color: vars.$surface-high;
+  border-color: #48474c;
+  color: vars.$light-muted;
+
+  &::after {
+    background-color: vars.$surface-container;
+    border-left-color: #48474c;
+    color: #fdd901;
+  }
+
+  &.disabled, &[disabled] {
+    background-color: vars.$surface-high;
+    color: vars.$light-muted;
+  }
+}
+
+// Selects (Symfony BS4 theme applies .custom-select; default white field,
+// disabled light-gray).
+.custom-select {
+  background-color: vars.$surface-high;
+  border-color: #48474c;
+  color: #f3eff6;
+  border-radius: 0;
+
+  &:disabled {
+    background-color: vars.$surface-high;
+    border-color: #48474c;
+    color: vars.$light-muted;
+  }
+
+  &:focus {
+    border-color: #fdd901;
+    box-shadow: 0 0 8px rgba(253, 217, 1, 0.3);
+  }
+}
+
+// Disabled custom checkboxes/radios (login "Angemeldet bleiben" etc.):
+// Bootstrap paints the box light-gray.
+.custom-control-input:disabled ~ .custom-control-label::before,
+.custom-control-input[disabled] ~ .custom-control-label::before {
+  background-color: vars.$surface-high;
+}
+
+// Pagination hover flashed Bootstrap's light-gray.
+.page-link:hover {
+  background-color: vars.$surface-container;
+  color: #fdd901;
+}
+
+// Breadcrumbs (gallery event pages): Bootstrap default is a light-gray bar
+// with light-on-light links.
+.breadcrumb {
+  background-color: vars.$surface-container;
+
+  .breadcrumb-item {
+    color: vars.$light-muted;
+
+    a { color: #f3eff6; }
+    + .breadcrumb-item::before { color: vars.$light-muted; }
+    &.active { color: #fdd901; }
+  }
+}
+
 // Checkbox / radio rows (e.g. the VichFileType "Löschen" delete toggle).
 // The label was black-on-dark (inherited from the removed `.modal-content
 // { color: #000 }`) and the native checkbox was unstyled — theme both.
