@@ -193,6 +193,28 @@ is published.
   (`CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID`) because `cap_drop: [ALL]`
   otherwise strips the caps that entrypoint's root-init needs (chown the data
   dir + gosu's setuid/setgid).
+- **`session.upload_progress` is OFF** — `docker/klms/security.ini` is installed
+  as `/usr/local/etc/php/conf.d/99-security.ini` (both tiers, web + worker).
+  Mitigation for **CVE-2026-109618 / CVE-2026-109619** ("PHP2Shell", CVSS v4.0
+  9.2 — fixed upstream in PHP 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12, released
+  2026-10-21 14:00 UTC). `CVE-2026-109619` ("RCE via stale global state") needs a
+  *consumer* that reads state surviving an interrupted request before normal
+  request init, and **session upload progress** is one of the two confirmed
+  consumers; PHP's advisory orders admins to set
+  `session.upload_progress.enabled=0` **administratively** — "do not rely on
+  `ini_set()` or FPM `.user.ini`: the consumer runs before per-script
+  configuration is applied" — which is exactly what a conf.d file does. Nothing in
+  KLMS reads upload-progress data (the admin gallery bulk-upload bar is
+  client-side), so this is invisible to users; uploads themselves are untouched
+  (`post_max_size` stays 8M, already the clamp PHP recommends for the other CVE).
+  PHP advises **keeping it off after patching** ("this hardly-used and
+  hardly-tested feature"), so do *not* delete this file at re-pin time. **Still
+  not the whole fix:** the other path (`GHSA-w8hw-w9fx-j79w", OOM corruption during
+  request cleanup) is only closed by a patched runtime — re-pin the `php:8.4-cli`
+  digest in *both* Dockerfiles to 8.4.27 and rebuild as soon as the official image
+  is published (docker-library/php#1694 was still unmerged at 14:11 UTC; Docker
+  Hub had no 8.4.27 tag, floating `8.4-cli` = 8.4.26). Verify: `docker exec <klms>
+  php -i | grep upload_progress.enabled` → `Off`.
 - Deliberately **not** done (over-engineering for this stack): read-only rootfs
   and a custom seccomp profile.
 
