@@ -71,6 +71,10 @@ COPY docker/klms-entrypoint.sh /klms-entrypoint.sh
 COPY docker/klms-router.php /app/docker/klms-router.php
 # PHP performance tuning (opcache on for both cli-server and cli SAPIs).
 COPY docker/klms/php.ini /usr/local/etc/php/conf.d/99-perf.ini
+# Pre-patch mitigation for CVE-2026-109618/109619 ("PHP2Shell"): turns off
+# session upload progress — see docker/klms/security.ini for what it does and
+# what it does NOT do. Applies to both tiers (web + worker) via conf.d.
+COPY docker/klms/security.ini /usr/local/etc/php/conf.d/99-security.ini
 # Cheap in-image DB-reachability probe for the healthchecks (see docker/hcdb.php).
 COPY docker/hcdb.php /hcdb.php
 RUN chmod +x /klms-entrypoint.sh

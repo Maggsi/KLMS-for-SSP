@@ -193,6 +193,18 @@ is published.
   (`CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID`) because `cap_drop: [ALL]`
   otherwise strips the caps that entrypoint's root-init needs (chown the data
   dir + gosu's setuid/setgid).
+- **`session.upload_progress` is OFF** — `docker/klms/security.ini` is installed
+  as `/usr/local/etc/php/conf.d/99-security.ini` (both tiers, web + worker).
+  Pre-patch mitigation for **CVE-2026-109618 / CVE-2026-109619** ("PHP2Shell"):
+  a reported heap use-after-free in PHP's upload-progress handler, reachable
+  from an unauthenticated `multipart/form-data` POST to *any* route before any
+  application code runs. Nothing in KLMS reads upload-progress data (the admin
+  gallery bulk-upload bar is client-side), so this is invisible to users;
+  uploads themselves are untouched. **This is not the fix** — the second
+  reported path is the multipart parser itself and stays reachable, so the real
+  remediation is re-pinning the `php:8.4-cli` digest in *both* Dockerfiles to a
+  patched PHP and rebuilding. Verify: `docker exec <klms> php -i |
+  grep upload_progress.enabled` → `Off`.
 - Deliberately **not** done (over-engineering for this stack): read-only rootfs
   and a custom seccomp profile.
 
