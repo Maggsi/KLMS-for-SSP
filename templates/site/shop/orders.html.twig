@@ -36,7 +36,7 @@
                                     {% if settings.get('lan.signup.payment_details') %}
                                         an:
                                         <div class="border p-2 m-1">
-                                            {{ settings.get('lan.signup.payment_details') | raw }}
+                                            {{ settings.get('lan.signup.payment_details') | raw | nl2br }}
                                         </div>
                                     {% else %}
                                         .

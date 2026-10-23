@@ -17,7 +17,7 @@
 Bitte bezahle <b>{{ (order.calculateTotal() / 100) | format_currency('EUR') }}</b>
 unter der Angabe <b>Bestellnummer {{ order.id }}</b>{% if settings.get('lan.signup.payment_details') %}
 an:
-<div class="border p-2 m-1">{{ settings.get('lan.signup.payment_details') | raw }}</div>
+<div class="border p-2 m-1">{{ settings.get('lan.signup.payment_details') | raw | nl2br }}</div>
 {% else %}.{% endif %}
 {% elseif showPaymentSuccess | default(false) %}
 {% if order.calculateTotal > 0 %}
