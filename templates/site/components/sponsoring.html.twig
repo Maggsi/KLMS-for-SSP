@@ -1,21 +1,48 @@
-{% if sponsor.active() and settings.get("sponsor.banner.show")  %}
-    {% set s = sponsor.getRandom() %}
-    {% if s is not empty %}
+{% if sponsor.active() and settings.get("sponsor.banner.show") %}
+    {% set sponsors = sponsor.carouselSponsors %}
+    {% if sponsors is not empty %}
         <div id="foot-bar" class="container py-3">
             {% if settings.get("sponsor.banner.show_title", true) %}
             <h2>{{ settings.get("sponsor.banner.title") | default("Supported by") }}</h2>
             {% endif %}
-            <div class="d-flex justify-content-center p-2">
-                <a {% if s.url is not empty %} href="{{ s.url }}" target="_blank" {% endif %}>
-                <img class="sponsor-banner-logo" src="{{ vich_uploader_asset(s, 'logoFile') | imagine_filter('sponsor_logo') }}" alt="{{ s.name }}">
-                </a>
-            </div>
-            <div class="text-center">
-                {% if settings.get("sponsor.banner.show_name", false) and s.name is not empty %}
-                <h5>{{ s.name }}</h5>
+            <div id="sponsor-carousel" class="carousel slide" data-ride="carousel">
+                {% if sponsors|length > 1 %}
+                <ol class="carousel-indicators">
+                    {% for s in sponsors %}
+                    <li data-target="#sponsor-carousel" data-slide-to="{{ loop.index0 }}"{% if loop.first %} class="active"{% endif %}></li>
+                    {% endfor %}
+                </ol>
                 {% endif %}
-                {% if settings.get("sponsor.banner.show_text", false) %}
-                <p>{{ s.text | raw }}</p>
+                <div class="carousel-inner">
+                    {% for s in sponsors %}
+                    <div class="carousel-item{% if loop.first %} active{% endif %}">
+                        <div class="sponsor-slide">
+                            <a{% if s.url is not empty %} href="{{ s.url }}" target="_blank"{% endif %}>
+                                {% if vich_uploader_asset(s, 'logoFile') is not null %}
+                                <img class="sponsor-banner-logo" src="{{ vich_uploader_asset(s, 'logoFile') | imagine_filter('sponsor_logo') }}" alt="{{ s.name }}">
+                                {% endif %}
+                            </a>
+                            <div class="text-center">
+                                {% if settings.get("sponsor.banner.show_name", false) and s.name is not empty %}
+                                <h5>{{ s.name }}</h5>
+                                {% endif %}
+                                {% if settings.get("sponsor.banner.show_text", false) %}
+                                <p>{{ s.text | raw }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if sponsors|length > 1 %}
+                <a class="carousel-control-prev" href="#sponsor-carousel" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#sponsor-carousel" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
                 {% endif %}
             </div>
         </div>
