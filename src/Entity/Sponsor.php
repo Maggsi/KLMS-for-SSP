@@ -49,6 +49,9 @@ class Sponsor implements HistoryAwareEntity
     #[ORM\Column]
     private ?bool $isVisible = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $inCarousel = false;
+
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $sortOrder = null;
 
@@ -146,6 +149,18 @@ class Sponsor implements HistoryAwareEntity
     public function setIsVisible(bool $isVisible): static
     {
         $this->isVisible = $isVisible;
+
+        return $this;
+    }
+
+    public function isInCarousel(): bool
+    {
+        return $this->inCarousel;
+    }
+
+    public function setInCarousel(bool $inCarousel): static
+    {
+        $this->inCarousel = $inCarousel;
 
         return $this;
     }
