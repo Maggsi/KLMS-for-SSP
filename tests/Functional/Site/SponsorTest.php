@@ -137,13 +137,16 @@ class SponsorTest extends DatabaseWebTestCase
         $crawler = $this->client->request('GET', '/');
         $this->assertResponseStatusCodeSame(200);
 
-        // bootstrap-4 carousel, one slide per visible+tick'd sponsor.
+        // Bootstrap-4 carousel, one slide per visible+tick'd sponsor.
         // Fixtures tick 2 visible + 1 invisible; invisible must never render.
         $this->assertSelectorExists('#sponsor-carousel.carousel.slide[data-ride="carousel"]');
         $this->assertCount(2, $crawler->filter('#sponsor-carousel .carousel-item'));
         $this->assertCount(2, $crawler->filter('#sponsor-carousel .carousel-item img.sponsor-banner-logo'));
-        $this->assertCount(2, $crawler->filter('#sponsor-carousel .carousel-indicators li'));
+        // no position indicators (client: they don't look good), arrows only
+        $this->assertSelectorNotExists('#sponsor-carousel .carousel-indicators');
         $this->assertCount(1, $crawler->filter('#sponsor-carousel .carousel-item.active'));
+        // heading is centered above the carousel
+        $this->assertSelectorExists('#foot-bar h2.text-center');
         // >1 slide: prev/next controls render
         $this->assertCount(1, $crawler->filter('#sponsor-carousel .carousel-control-prev'));
         $this->assertCount(1, $crawler->filter('#sponsor-carousel .carousel-control-next'));

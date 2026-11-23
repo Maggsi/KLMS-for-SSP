@@ -3,16 +3,9 @@
     {% if sponsors is not empty %}
         <div id="foot-bar" class="container py-3">
             {% if settings.get("sponsor.banner.show_title", true) %}
-            <h2>{{ settings.get("sponsor.banner.title") | default("Supported by") }}</h2>
+            <h2 class="text-center mb-1">{{ settings.get("sponsor.banner.title") | default("Supported by") }}</h2>
             {% endif %}
             <div id="sponsor-carousel" class="carousel slide" data-ride="carousel">
-                {% if sponsors|length > 1 %}
-                <ol class="carousel-indicators">
-                    {% for s in sponsors %}
-                    <li data-target="#sponsor-carousel" data-slide-to="{{ loop.index0 }}"{% if loop.first %} class="active"{% endif %}></li>
-                    {% endfor %}
-                </ol>
-                {% endif %}
                 <div class="carousel-inner">
                     {% for s in sponsors %}
                     <div class="carousel-item{% if loop.first %} active{% endif %}">
