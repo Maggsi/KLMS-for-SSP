@@ -2,9 +2,11 @@
 
 namespace App\Tests\Functional\Site;
 use App\DataFixtures\SponsorFixtures;
+use App\Entity\Sponsor;
 use App\Service\SettingService;
 use App\Service\SponsorService;
 use App\Tests\Functional\DatabaseWebTestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 class SponsorTest extends DatabaseWebTestCase
 {
@@ -116,5 +118,78 @@ class SponsorTest extends DatabaseWebTestCase
         $this->assertResponseStatusCodeSame(200);
         $this->assertSelectorExists('.sponsor-category');
         $this->assertSelectorNotExists('.sponsor');
+    }
+
+    private function loadCarouselFixtures(): void
+    {
+        // liip's loadFixtures only accepts class strings; it resolves them via
+        // the container's fixture services, so mutating the shared service
+        // instance before loading is what ticks the carousel flag.
+        $fixtures = static::getContainer()->get(SponsorFixtures::class);
+        $fixtures->makeCarouselVisible();
+        $this->databaseTool->loadFixtures([SponsorFixtures::class]);
+    }
+
+    public function testFooterCarouselShowsTickSponsors()
+    {
+        $this->loadCarouselFixtures();
+
+        $crawler = $this->client->request('GET', '/');
+        $this->assertResponseStatusCodeSame(200);
+
+        // bootstrap-4 carousel, one slide per visible+tick'd sponsor.
+        // Fixtures tick 2 visible + 1 invisible; invisible must never render.
+        $this->assertSelectorExists('#sponsor-carousel.carousel.slide[data-ride="carousel"]');
+        $this->assertCount(2, $crawler->filter('#sponsor-carousel .carousel-item'));
+        $this->assertCount(2, $crawler->filter('#sponsor-carousel .carousel-item img.sponsor-banner-logo'));
+        $this->assertCount(2, $crawler->filter('#sponsor-carousel .carousel-indicators li'));
+        $this->assertCount(1, $crawler->filter('#sponsor-carousel .carousel-item.active'));
+        // >1 slide: prev/next controls render
+        $this->assertCount(1, $crawler->filter('#sponsor-carousel .carousel-control-prev'));
+        $this->assertCount(1, $crawler->filter('#sponsor-carousel .carousel-control-next'));
+        // uniform logo box class present (styled via CSS, no inline styles)
+        $this->assertCount(2, $crawler->filter('#sponsor-carousel .sponsor-slide img.sponsor-banner-logo'));
+        $this->assertCount(0, $crawler->filter('#sponsor-carousel img[style]'));
+        $this->assertEquals(0, $this->mock->getInvalidCalls());
+    }
+
+    public function testFooterCarouselHiddenWhenNobodyTick()
+    {
+        // default fixtures: visible sponsors exist, inCarousel = NO
+        $this->databaseTool->loadFixtures([SponsorFixtures::class]);
+
+        $this->client->request('GET', '/');
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertSelectorNotExists('#sponsor-carousel');
+    }
+
+    public function testFooterCarouselHiddenWhenBannerDisabled()
+    {
+        $this->loadCarouselFixtures();
+        $settings = static::getContainer()->get(SettingService::class);
+        $settings->set('sponsor.banner.show', false);
+
+        $this->client->request('GET', '/');
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertSelectorNotExists('#sponsor-carousel');
+    }
+
+    public function testFooterCarouselSingleSlideHasNoControls()
+    {
+        $this->loadCarouselFixtures();
+        // un-tick one of the two visible sponsors
+        $repository = static::getContainer()->get('doctrine')->getRepository(Sponsor::class);
+        $acme = $repository->findOneBy(['name' => 'ACME Industries']);
+        $this->assertNotNull($acme);
+        $acme->setInCarousel(false);
+        static::getContainer()->get('doctrine')->getManager()->flush();
+
+        $crawler = $this->client->request('GET', '/');
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertCount(1, $crawler->filter('#sponsor-carousel .carousel-item'));
+        // 1 slide: no indicators, no arrows, the lone slide is .active
+        $this->assertSelectorNotExists('#sponsor-carousel .carousel-indicators');
+        $this->assertSelectorNotExists('#sponsor-carousel .carousel-control-next');
+        $this->assertCount(1, $crawler->filter('#sponsor-carousel .carousel-item.active'));
     }
 }

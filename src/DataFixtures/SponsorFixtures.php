@@ -15,11 +15,19 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class SponsorFixtures extends Fixture implements DependentFixtureInterface
 {
-    private readonly Filesystem $filesystem;
+    private Filesystem $filesystem;
 
-    public function __construct(Filesystem $filesystem)
+    private bool $inCarousel;
+
+    public function __construct(Filesystem $filesystem, bool $inCarousel = false)
     {
         $this->filesystem = $filesystem;
+        $this->inCarousel = $inCarousel;
+    }
+
+    public function makeCarouselVisible(): void
+    {
+        $this->inCarousel = true;
     }
 
     public function load(ObjectManager $manager): void
@@ -75,6 +83,7 @@ class SponsorFixtures extends Fixture implements DependentFixtureInterface
             (new Sponsor())
                 ->setName("Big Corp.")
                 ->setIsVisible(true)
+                ->setInCarousel($this->inCarousel)
                 ->setCategory($categories[1])
                 ->setText($lipsum->paragraph())
                 ->setUrl("https://www.example.com")
@@ -87,6 +96,7 @@ class SponsorFixtures extends Fixture implements DependentFixtureInterface
             (new Sponsor())
                 ->setName("ACME Industries")
                 ->setIsVisible(true)
+                ->setInCarousel($this->inCarousel)
                 ->setCategory($categories[1])
                 ->setText($lipsum->paragraph())
                 ->setUrl(null)
@@ -99,6 +109,7 @@ class SponsorFixtures extends Fixture implements DependentFixtureInterface
             (new Sponsor())
                 ->setName("Not Visible Incorporated")
                 ->setIsVisible(false)
+                ->setInCarousel($this->inCarousel)
                 ->setCategory($categories[1])
                 ->setText($lipsum->paragraph())
                 ->setUrl(null)
