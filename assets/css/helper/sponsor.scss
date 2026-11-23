@@ -2,14 +2,6 @@
 // stay even no matter how much transparent padding the uploaded logos carry.
 @use '../bootstrap-site' as bootstrap;
 
-// Footer banner logo (sponsoring.html.twig) — class-based box instead of
-// the old inline max-width/max-height (same cleanup as .sponsor-logo).
-.sponsor-banner-logo {
-  max-width: 250px;
-  max-height: 200px;
-  object-fit: contain;
-}
-
 .sponsor {
   .sponsor-logo {
     width: 300px;
@@ -24,6 +16,47 @@
     .sponsor-logo {
       width: 200px;
       height: 200px;
+    }
+  }
+}
+
+// Footer sponsor carousel (sponsoring.html.twig).
+// Uniform slide geometry: every logo renders inside the SAME fixed box;
+// object-fit: contain scales it to fit WITHOUT stretching (aspect ratio kept,
+// letterboxing allowed) — same pattern as .sponsor-logo on the /sponsor page.
+#sponsor-carousel {
+  .sponsor-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 220px;                 // constant banner height while rotating
+  }
+
+  .sponsor-slide a {
+    display: block;
+    width: 100%;                   // link spans the slide so the logo centers
+    text-align: center;
+  }
+
+  .sponsor-banner-logo {
+    width: 350px;                  // fixed box = the sponsor_logo imagine downscale cap
+    height: 180px;
+    max-width: 100%;               // never overflow the slide on narrow screens
+    object-fit: contain;           // scale to fit, never distort
+    margin-inline: auto;           // center the (possibly narrower) img box
+  }
+}
+
+@media (max-width: 575.98px) {
+  #sponsor-carousel {
+    .sponsor-slide {
+      height: 140px;
+    }
+
+    .sponsor-banner-logo {
+      width: 240px;
+      height: 110px;
     }
   }
 }

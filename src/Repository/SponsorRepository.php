@@ -21,45 +21,13 @@ class SponsorRepository extends ServiceEntityRepository
         parent::__construct($registry, Sponsor::class);
     }
 
-    public function findOneRandomBy($criteria = [])
-    {
-        $qb = $this->createQueryBuilder('entity')
-            ->select('COUNT(entity.id)')
-            ->andWhere("entity.isVisible = :isVisible")
-            ->setParameter("isVisible", true)
-        ;
-
-        foreach ($criteria as $field => $value) {
-            $qb
-                ->andWhere(sprintf('entity.%s=:%s', $field, $field))
-                ->setParameter(':'.$field, $value)
-            ;
-        }
-
-        $count = $qb
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        if ($count == 0) {
-            return null;
-        }
-
-        $offset = rand(0, $count - 1);
-
-        return $qb
-            ->select('entity')
-            ->setMaxResults(1)
-            ->setFirstResult($offset)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-
-    public function findAllVisible()
+    public function findCarouselVisible()
     {
         return $this->createQueryBuilder('s')
-            ->andWhere("s.isVisible = :isVisible")
-            ->setParameter("isVisible", true)
+            ->andWhere('s.isVisible = :visible')
+            ->andWhere('s.inCarousel = :carousel')
+            ->setParameter('visible', true)
+            ->setParameter('carousel', true)
             ->addOrderBy('s.sortOrder', 'ASC')
             ->addOrderBy('s.name', 'ASC')
             ->getQuery()
