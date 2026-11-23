@@ -66,6 +66,19 @@ class SponsorRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findCarouselVisible()
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.isVisible = :visible')
+            ->andWhere('s.inCarousel = :carousel')
+            ->setParameter('visible', true)
+            ->setParameter('carousel', true)
+            ->addOrderBy('s.sortOrder', 'ASC')
+            ->addOrderBy('s.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findAllSorted()
     {
         return $this->createQueryBuilder('s')

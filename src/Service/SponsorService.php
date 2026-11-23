@@ -63,9 +63,12 @@ class SponsorService extends OptimalService
         return $this->sponsorRepository->findAllSorted();
     }
 
-    public function getRandom(): ?Sponsor
+    /**
+     * @return Sponsor[] visible sponsors opted into the footer carousel
+     */
+    public function getCarouselSponsors(): array
     {
-        return $this->sponsorRepository->findOneRandomBy();
+        return $this->sponsorRepository->findCarouselVisible();
     }
 
     public function count(): int
