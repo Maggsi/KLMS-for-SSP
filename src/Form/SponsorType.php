@@ -28,6 +28,7 @@ class SponsorType extends AbstractType
         $builder
             ->add('name', null, ['label' => 'Name', 'required' => false])
             ->add('isVisible', null, ['label' => 'Sponsor anzeigen'])
+            ->add('inCarousel', null, ['label' => 'Im Carousel anzeigen', 'required' => false])
             ->add('sortOrder', IntegerType::class, ['label' => 'Sortierung', 'required' => false])
             ->add('url', null, ['label' => 'URL'])
             ->add('text', HtmlTextareaType::class, [
